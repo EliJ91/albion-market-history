@@ -1,0 +1,25 @@
+.main-content {
+  margin-top: 60px; /* Account for fixed top bar height */
+  min-height: calc(100vh - 60px);
+  background-color: #f8f9fa;
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 100px);
+}
+
+/* Responsive padding */
+@media (max-width: 768px) {
+  .content-container {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content-container {
+    padding: 10px;
+  }
+}

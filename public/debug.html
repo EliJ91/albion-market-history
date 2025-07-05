@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Items.txt</title>
+</head>
+<body>
+    <h1>Debug Items.txt Loading</h1>
+    <div id="output"></div>
+    
+    <script>
+        async function testItemsLoading() {
+            const output = document.getElementById('output');
+            
+            try {
+                output.innerHTML += '<p>Fetching /items.txt...</p>';
+                const response = await fetch('/items.txt');
+                output.innerHTML += `<p>Response status: ${response.status} ${response.statusText}</p>`;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                output.innerHTML += `<p>File length: ${text.length} characters</p>`;
+                output.innerHTML += `<p>First 500 characters:</p><pre>${text.substring(0, 500)}</pre>`;
+                
+                // Test parsing
+                const lines = text.split('\n');
+                output.innerHTML += `<p>Total lines: ${lines.length}</p>`;
+                
+                let parsedCount = 0;
+                let sampleItems = [];
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine || trimmedLine.includes('URL Value') || trimmedLine.includes('Search Value')) {
+                        continue;
+                    }
+                    
+                    const match = trimmedLine.match(/^(\d+):\s*([A-Z0-9_@]+)\s*:\s*(.+?)$/);
+                    if (match) {
+                        parsedCount++;
+                        const [, id, urlValue, searchValue] = match;
+                        
+                        if (searchValue.toLowerCase().includes('broadsword') || urlValue.toLowerCase().includes('broadsword')) {
+                            sampleItems.push({
+                                id: parseInt(id, 10),
+                                itemId: urlValue.trim(),
+                                name: searchValue.trim()
+                            });
+                        }
+                        
+                        if (parsedCount <= 5) {
+                            output.innerHTML += `<p>Sample item ${parsedCount}: ${urlValue.trim()} -> ${searchValue.trim()}</p>`;
+                        }
+                    }
+                }
+                
+                output.innerHTML += `<p>Successfully parsed: ${parsedCount} items</p>`;
+                output.innerHTML += `<p>Items with "broadsword": ${sampleItems.length}</p>`;
+                sampleItems.forEach(item => {
+                    output.innerHTML += `<p>- ${item.itemId}: ${item.name}</p>`;
+                });
+                
+            } catch (error) {
+                output.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        testItemsLoading();
+    </script>
+</body>
+</html>
