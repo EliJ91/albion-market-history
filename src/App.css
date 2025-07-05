@@ -1,35 +1,31 @@
 .App {
   min-height: 100vh;
-  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+  color: #ffffff;
 }
 
-/* Reset default margins and ensure full height */
+.component-area {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: transparent;
+}
+
+/* Reset default margins and apply dark mode globally */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 #root {
   height: 100%;
-}
-
-/* Placeholder component styles for future components */
-.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  background: white;
-  border-radius: 12px;
-  font-size: 1.2rem;
-  color: #7f8c8d;
-  font-weight: 500;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #0f1419 100%);
 }

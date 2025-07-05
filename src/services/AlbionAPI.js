@@ -198,81 +198,24 @@ export const AlbionAPI = {
   },
 
   // Get price history for an item with both time scales
-  async getItemHistory(itemId, options = {}) {
+  async getItemHistory(itemIds, options = {}) {
     try {
-      console.log('🔗 Fetching price history for both time scales...');
-      
-      // Fetch both hourly and daily data simultaneously - ALL data (no filters)
-      const [hourlyResponse, dailyResponse] = await Promise.all([
-        // Hourly data (time-scale=1)
-        fetch(`${ALBION_API_BASE}/history/${itemId}?time-scale=1`),
-        // Daily data (time-scale=24)
-        fetch(`${ALBION_API_BASE}/history/${itemId}?time-scale=24`)
-      ]);
-      
-      console.log('📊 Hourly URL:', `${ALBION_API_BASE}/history/${itemId}?time-scale=1`);
-      console.log('📊 Daily URL:', `${ALBION_API_BASE}/history/${itemId}?time-scale=24`);
-      
-      if (!hourlyResponse.ok || !dailyResponse.ok) {
-        throw new Error(`HTTP error! Hourly: ${hourlyResponse.status}, Daily: ${dailyResponse.status}`);
+      // itemIds: string or array of strings
+      let ids = Array.isArray(itemIds) ? itemIds : [itemIds];
+      const joinedIds = ids.join(',');
+      const timeScale = options.timeScale || 1; // default to 1 hour
+      const quality = options.quality ? `&quality=${options.quality}` : '';
+      const url = `${ALBION_API_BASE}/history/${joinedIds}.json?time-scale=${timeScale}${quality}`;
+      console.log('🔗 Fetching history data from URL:', url);
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      const [hourlyData, dailyData] = await Promise.all([
-        hourlyResponse.json(),
-        dailyResponse.json()
-      ]);
-      
-      console.log('📊 Received hourly data points:', hourlyData.length);
-      console.log('📊 Received daily data points:', dailyData.length);
-      
-      // Organize data by time scale and city
-      const organizedData = {
-        1: {}, // hourly
-        24: {} // daily
-      };
-      
-      // Process hourly data
-      hourlyData.forEach(dataPoint => {
-        const cityName = dataPoint.city;
-        if (!organizedData[1][cityName]) {
-          organizedData[1][cityName] = [];
-        }
-        organizedData[1][cityName].push({
-          timestamp: dataPoint.timestamp,
-          avg_price: dataPoint.avg_price,
-          item_count: dataPoint.item_count,
-          quality: dataPoint.quality || 1
-        });
-      });
-      
-      // Process daily data
-      dailyData.forEach(dataPoint => {
-        const cityName = dataPoint.city;
-        if (!organizedData[24][cityName]) {
-          organizedData[24][cityName] = [];
-        }
-        organizedData[24][cityName].push({
-          timestamp: dataPoint.timestamp,
-          avg_price: dataPoint.avg_price,
-          item_count: dataPoint.item_count,
-          quality: dataPoint.quality || 1
-        });
-      });
-      
-      // Sort data by timestamp for each city and time scale
-      Object.keys(organizedData).forEach(timeScale => {
-        Object.keys(organizedData[timeScale]).forEach(city => {
-          organizedData[timeScale][city].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        });
-      });
-      
-      console.log('✅ Successfully fetched history data for both time scales');
-      console.log('📊 Hourly data points:', Object.values(organizedData[1]).flat().length);
-      console.log('📊 Daily data points:', Object.values(organizedData[24]).flat().length);
-      
+      const data = await response.json();
+      console.log('API return:', data);
       return {
         success: true,
-        data: organizedData,
+        data: data,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
@@ -388,5 +331,14 @@ export const AlbionAPI = {
     };
   }
 };
+
+// Utility to get the constructed API URL for debugging
+export function getHistoryApiUrl(itemIds, options = {}) {
+  let ids = Array.isArray(itemIds) ? itemIds : [itemIds];
+  const joinedIds = ids.join(',');
+  const timeScale = options.timeScale || 1;
+  const quality = options.quality ? `&quality=${options.quality}` : '';
+  return `${API_ENDPOINTS.americas}/history/${joinedIds}.json?time-scale=${timeScale}${quality}`;
+}
 
 export default AlbionAPI;

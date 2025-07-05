@@ -1,17 +1,22 @@
-import axios from 'axios';
-
 const ALBION_API_BASE = 'https://www.albion-online-data.com/api/v2/stats';
 
 class AlbionMarketService {
   // Get current market prices for an item
   async getItemPrices(itemId, locations = 'Caerleon,Bridgewatch,Lymhurst,Martlock,Thetford,FortSterling', qualities = '1,2,3,4,5') {
     try {
-      const response = await axios.get(`${ALBION_API_BASE}/prices/${itemId}`, {
-        params: { locations, qualities }
-      });
+      const url = new URL(`${ALBION_API_BASE}/prices/${itemId}`);
+      url.searchParams.append('locations', locations);
+      url.searchParams.append('qualities', qualities);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       return {
         success: true,
-        data: response.data,
+        data: data,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
@@ -26,16 +31,20 @@ class AlbionMarketService {
   // Get price history for an item
   async getItemHistory(itemId, locations = 'Caerleon', qualities = '1', timeScale = '24') {
     try {
-      const response = await axios.get(`${ALBION_API_BASE}/history/${itemId}`, {
-        params: { 
-          locations, 
-          qualities, 
-          time_scale: timeScale 
-        }
-      });
+      const url = new URL(`${ALBION_API_BASE}/history/${itemId}`);
+      url.searchParams.append('locations', locations);
+      url.searchParams.append('qualities', qualities);
+      url.searchParams.append('time_scale', timeScale);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       return {
         success: true,
-        data: response.data,
+        data: data,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
@@ -51,12 +60,19 @@ class AlbionMarketService {
   async getBulkPrices(itemIds, locations = 'Caerleon,Bridgewatch,Lymhurst,Martlock,Thetford,FortSterling', qualities = '1,2,3,4,5') {
     try {
       const itemList = Array.isArray(itemIds) ? itemIds.join(',') : itemIds;
-      const response = await axios.get(`${ALBION_API_BASE}/prices/${itemList}`, {
-        params: { locations, qualities }
-      });
+      const url = new URL(`${ALBION_API_BASE}/prices/${itemList}`);
+      url.searchParams.append('locations', locations);
+      url.searchParams.append('qualities', qualities);
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       return {
         success: true,
-        data: response.data,
+        data: data,
         timestamp: new Date().toISOString()
       };
     } catch (error) {
