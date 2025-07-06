@@ -19,17 +19,19 @@ const MarketItemCard = ({ item, marketData, allCities, onClose }) => {
         ×
       </button>
       <h3 className="market-item-title">{item?.LocalizedNames?.['EN-US'] || item?.UniqueName || item?.key}</h3>
-      <PriceChart
-        allData={marketData}
-        allCities={allCities}
-        selectedCities={selectedCities}
-        setSelectedCities={setSelectedCities}
-        selectedTimeRange={selectedTimeRange}
-        onTimeRangeChange={setSelectedTimeRange}
-        selectedQuality={selectedQuality}
-        onQualityChange={setSelectedQuality}
-        item={item}
-      />
+      <div className="market-item-card-content">
+        <PriceChart
+          allData={marketData}
+          allCities={allCities}
+          selectedCities={selectedCities}
+          setSelectedCities={setSelectedCities}
+          selectedTimeRange={selectedTimeRange}
+          onTimeRangeChange={setSelectedTimeRange}
+          selectedQuality={selectedQuality}
+          onQualityChange={setSelectedQuality}
+          item={item}
+        />
+      </div>
     </div>
   );
 };

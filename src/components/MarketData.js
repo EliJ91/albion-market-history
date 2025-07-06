@@ -42,6 +42,7 @@ const MarketData = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
   const searchInputRef = useRef(null);
+  const suggestionsRef = useRef(null);
 
   // Add state for selected quality per location
   const [locationQualities, setLocationQualities] = useState({});
@@ -214,7 +215,7 @@ const MarketData = () => {
           item: { key, value, LocalizedNames: itemDatabase[key]?.LocalizedNames, UniqueName: key },
           marketData: data,
         }
-      );
+      ]);
       setMarketData({ success: true, data });
     } catch (error) {
       // Optionally handle error
@@ -325,23 +326,48 @@ const MarketData = () => {
     // Only update if tier and enchantment are valid (not 'Select')
     let tier = selectedTier !== 'Select' ? selectedTier : parseItemValue(dbResult.value).tier;
     let enchant = selectedEnchantment !== 'Select' ? selectedEnchantment : parseItemValue(dbResult.value).enchant;
-    const baseName = getBaseName(dbResult.key);
-    const newItemName = getItemNameForTier(baseName, tier);
-    // Find the new key in itemDatabase
-    const match = Object.keys(itemDatabase).find(k => k === newItemName);
-    if (match) {
-      // Compose value with correct enchantment (never 'Select')
-      const baseVal = itemDatabase[match].split('@')[0];
-      const newVal = enchant && enchant !== '0' && enchant !== 'Select' ? `${baseVal}@${enchant}` : baseVal;
-      setSearchTerm(match); // Update the text field to reflect the new item name
-      setDbResult({ key: match, value: newVal });
-    } else {
-      // If no match, just update enchantment if possible
-      if (dbResult.value) {
-        const baseVal = dbResult.value.split('@')[0];
-        const newVal = enchant && enchant !== '0' && enchant !== 'Select' ? `${baseVal}@${enchant}` : baseVal;
-        setDbResult(prev => prev ? { ...prev, value: newVal } : prev);
+    // Find a key in itemDatabase that starts with the selected tier and ends with the same suffix as the current key (after the first underscore)
+    const keySuffix = dbResult.key.substring(dbResult.key.indexOf('_') + 1); // e.g., PLANKS_LEVEL1
+    let matchKey = Object.keys(itemDatabase).find(k => k.startsWith(tier + '_') && k.endsWith(keySuffix));
+    let newVal = null;
+    const ENCHANT_SUFFIX_TYPES = ["WOOD", "PLANK", "ORE", "BAR", "FIBER", "CLOTH", "LEATHER", "HIDE", "STONE"];
+    function needsLevelSuffix(val) {
+      return ENCHANT_SUFFIX_TYPES.some(type => val.endsWith(type));
+    }
+    function stripLevel(val) {
+      // Remove _LEVELN or _LEVELN@N from the end
+      return val.replace(/_LEVEL\d+(@\d+)?$/, '');
+    }
+    if (enchant && enchant !== '0' && enchant !== 'Select') {
+      let dbVal = matchKey ? itemDatabase[matchKey] : dbResult.value;
+      if (needsLevelSuffix(dbVal)) {
+        // Resource items: always _LEVELN@N
+        newVal = `${stripLevel(dbVal)}_LEVEL${enchant}@${enchant}`;
+      } else {
+        // Gear and other items: only @N
+        // Remove any existing @N
+        let baseVal = dbVal.split('@')[0];
+        newVal = `${baseVal}@${enchant}`;
       }
+    } else if (matchKey) {
+      newVal = itemDatabase[matchKey];
+    }
+    if (matchKey && newVal) {
+      setSearchTerm(matchKey);
+      setDbResult({ key: matchKey, value: newVal });
+    } else if (dbResult.value) {
+      let dbVal = dbResult.value;
+      if (enchant && enchant !== '0' && enchant !== 'Select') {
+        if (needsLevelSuffix(dbVal)) {
+          newVal = `${stripLevel(dbVal)}_LEVEL${enchant}@${enchant}`;
+        } else {
+          let baseVal = dbVal.split('@')[0];
+          newVal = `${baseVal}@${enchant}`;
+        }
+      } else {
+        newVal = dbVal;
+      }
+      setDbResult(prev => prev ? { ...prev, value: newVal } : prev);
     }
     // Do NOT auto-fetch on dropdown change
   }, [selectedTier, selectedEnchantment]);
@@ -384,6 +410,27 @@ const MarketData = () => {
     // eslint-disable-next-line
   }, [marketData]);
 
+  // Hide suggestions dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target)
+      ) {
+        setSuggestions([]);
+        setActiveSuggestion(-1);
+      }
+    }
+    if (suggestions.length > 0) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [suggestions]);
+
   return (
     <div className="market-data">
       <div className="header-section">
@@ -421,11 +468,15 @@ const MarketData = () => {
 
             {/* Suggestions dropdown for itemDatabase */}
             {suggestions.length > 0 && (
-              <div className="search-results">
+              <div
+                className="search-results"
+                ref={suggestionsRef}
+              >
                 {suggestions.map((obj, idx) => (
                   <div
                     key={obj.key}
                     className={`search-result-item${activeSuggestion === idx ? ' active' : ''}`}
+                    tabIndex={0}
                     onClick={() => {
                       setSearchTerm(obj.key);
                       setSuggestions([]);
@@ -435,7 +486,7 @@ const MarketData = () => {
                       // Do NOT trigger API fetch here
                     }}
                   >
-                    {obj.base}
+                    {obj.key}
                   </div>
                 ))}
               </div>
