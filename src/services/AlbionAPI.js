@@ -22,7 +22,8 @@ export const CITIES = {
   'Lymhurst': { icon: 'L', color: '#34a853', apiName: 'Lymhurst' },
   'Martlock': { icon: 'M', color: '#4285f4', apiName: 'Martlock' },
   'Thetford': { icon: 'T', color: '#673ab7', apiName: 'Thetford' },
-  'Fort Sterling': { icon: 'F', color: '#9aa0a6', apiName: 'Fort Sterling' }
+  'Fort Sterling': { icon: 'F', color: '#9aa0a6', apiName: 'Fort Sterling' },
+  'Black Market': { icon: 'BM', color: '#222', apiName: 'Black Market' }
 };
 
 // Quality levels for items

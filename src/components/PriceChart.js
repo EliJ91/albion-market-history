@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import './PriceChart.css';
 
 ChartJS.register(
   LineElement,
@@ -21,52 +22,72 @@ ChartJS.register(
   Legend
 );
 
+
+// City color mapping
+const CITY_COLORS = {
+  Bridgewatch: '#FFD166', // desert sand orange/yellow
+  'Fort Sterling': '#F8F8FF', // Snow White
+  Lymhurst: '#228B22', // Forest Green
+  Martlock: '#1E90FF', // Ocean Blue
+  Thetford: '#7C4BC9', // Off purple (cape color)
+  Caerleon: '#D7263D', // Red
+  'Black Market': '#222', // Black
+};
+// Fallback colors for any other cities
 const COLORS = [
+  '#FFD166', // Bridgewatch
+  '#F8F8FF', // Fort Sterling
+  '#228B22', // Lymhurst
+  '#1E90FF', // Martlock
+  '#7C4BC9', // Thetford (off purple)
+  '#D7263D', // Caerleon (red)
+  '#222',    // Black Market (black)
   '#667eea', '#f56565', '#48bb78', '#ed8936', '#38b2ac', '#a0aec0', '#ecc94b', '#9f7aea', '#f6ad55', '#68d391'
 ];
 
-const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, selectedTimeRange, setSelectedTimeRange }) => {
+const QUALITIES = [1, 2, 3, 4, 5];
+
+const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, selectedTimeRange, onTimeRangeChange, selectedQuality, onQualityChange }) => {
   // Time range dropdown options
   const TIME_RANGE_OPTIONS = [
-    { label: '1 Day', value: '1d', days: 1 },
     { label: '1 Week', value: '1w', days: 7 },
-    { label: '1 Month', value: '1m', days: 30 },
-    { label: '3 Months', value: '3m', days: 90 },
+    { label: '2 Weeks', value: '2w', days: 14 },
+    { label: '4 Weeks', value: '4w', days: 28 },
   ];
 
   // Filter data by selected time range (client-side)
   const now = Date.now();
-  const selectedOption = TIME_RANGE_OPTIONS.find(opt => opt.value === selectedTimeRange) || TIME_RANGE_OPTIONS[1];
+  const selectedOption = TIME_RANGE_OPTIONS.find(opt => opt.value === selectedTimeRange) || TIME_RANGE_OPTIONS[2];
   const minTimestamp = now - selectedOption.days * 24 * 60 * 60 * 1000;
 
-  // Filter data for selected time range
+  // Group all data by city and quality (do not filter by date yet)
   const cityGroups = {};
   allData.forEach(entry => {
     if (!cityGroups[entry.location]) cityGroups[entry.location] = {};
     Object.keys(entry).forEach(key => {
       if (key === 'quality' || key === 'location' || key === 'item_id') return;
-      // Filter entry.data by date
-      entry.data = entry.data.filter(d => new Date(d.timestamp).getTime() >= minTimestamp);
       if (!cityGroups[entry.location][entry.quality]) cityGroups[entry.location][entry.quality] = [];
       cityGroups[entry.location][entry.quality].push(...entry.data);
     });
   });
 
-  // For each city, check if it has data (for any quality, since quality is removed)
+  // For each city, check if it has data for the selected quality
   const cityHasData = {};
   allCities.forEach(city => {
-    cityHasData[city] = cityGroups[city] && Object.values(cityGroups[city]).some(arr => arr.length > 0);
+    cityHasData[city] = cityGroups[city] && cityGroups[city][selectedQuality] && cityGroups[city][selectedQuality].length > 0;
   });
 
-  // Only plot selected cities
+  // Only plot selected cities, filter by selected time range here
   const citiesToPlot = selectedCities;
   const chartData = citiesToPlot.map((city, idx) => {
-    // Use all available data for the city (merge all qualities)
-    const allCityData = Object.values(cityGroups[city] || {}).flat();
+    // Use only data for the selected quality, filter by date here
+    const cityQualityData = ((cityGroups[city] && cityGroups[city][selectedQuality]) || []).filter(d => new Date(d.timestamp).getTime() >= minTimestamp);
+    // Use mapped color if city is in CITY_COLORS, else fallback to COLORS
+    const color = CITY_COLORS[city] || COLORS[idx % COLORS.length];
     return {
       city,
-      color: COLORS[idx % COLORS.length],
-      data: allCityData
+      color,
+      data: cityQualityData
     };
   });
 
@@ -89,19 +110,31 @@ const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, sel
     tension: 0.2,
   }));
 
+  // Format date as MM-DD
   const chartJsData = {
-    labels: allTimestamps.map(ts => new Date(ts).toLocaleString()),
+    labels: allTimestamps.map(ts => {
+      const d = new Date(ts);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${mm}-${dd}`;
+    }),
     datasets,
   };
 
   return (
-    <div style={{background:'rgba(40,60,90,0.18)',borderRadius:8,padding:8,marginBottom:12, maxWidth: 480, width: '100%', minHeight: 220}}>
-      {/* Time range selector in chart container */}
-      <div style={{display:'flex',alignItems:'center',marginBottom:8, gap: 12}}>
-        <label style={{color:'#fff',fontWeight:600}}>Time Range:</label>
-        <select value={selectedTimeRange} onChange={e => setSelectedTimeRange(e.target.value)}>
+    <div className="price-chart-container">
+      {/* Time range and quality selector in chart container */}
+      <div className="price-chart-header">
+        <label className="price-chart-label">Time Range:</label>
+        <select value={selectedTimeRange} onChange={e => onTimeRangeChange(e.target.value)}>
           {TIME_RANGE_OPTIONS.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <label className="price-chart-label quality">Quality:</label>
+        <select value={selectedQuality} onChange={e => onQualityChange(Number(e.target.value))}>
+          {QUALITIES.map(q => (
+            <option key={q} value={q}>Q{q}</option>
           ))}
         </select>
       </div>
@@ -121,28 +154,19 @@ const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, sel
         height={180}
       />
       {/* City selection grid under the chart */}
-      <div className="city-checkbox-grid" style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '8px',
-        maxWidth: 480,
-        margin: '16px auto 0',
-        padding: '8px 0',
-      }}>
+      <div className="city-checkbox-grid">
         {allCities.map((city, idx) => {
           const hasData = cityHasData[city];
           return (
-            <label key={city} style={{
-              opacity: hasData ? 1 : 0.5,
-              cursor: hasData ? 'pointer' : 'not-allowed',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontWeight: 500,
-              fontSize: '0.97rem',
-            }}>
+            <label
+              key={city}
+              className={
+                'city-checkbox-label' + (!hasData ? ' disabled' : '')
+              }
+            >
               <input
                 type="checkbox"
+                className="city-checkbox-input"
                 checked={selectedCities.includes(city)}
                 disabled={!hasData}
                 onChange={() => {
@@ -153,7 +177,6 @@ const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, sel
                       : [...prev, city]
                   );
                 }}
-                style={{ accentColor: '#667eea', width: 16, height: 16 }}
               />
               {city}
             </label>
@@ -163,5 +186,7 @@ const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, sel
     </div>
   );
 };
+
+
 
 export default PriceChart;

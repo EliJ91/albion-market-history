@@ -1,0 +1,61 @@
+.price-chart-container {
+  background: rgba(40,60,90,0.18);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 12px;
+  width: 50%;
+  min-width: 320px;
+  max-width: 600px;
+  min-height: 80px;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.price-chart-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.price-chart-label {
+  color: #fff;
+  font-weight: 600;
+}
+
+.price-chart-label.quality {
+  margin-left: 16px;
+}
+
+.city-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 480px;
+  margin: 16px auto 0;
+  padding: 8px 0;
+}
+
+.city-checkbox-label {
+  opacity: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 0.97rem;
+}
+
+.city-checkbox-label.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.city-checkbox-input {
+  accent-color: #667eea;
+  width: 16px;
+  height: 16px;
+}

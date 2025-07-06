@@ -1,0 +1,67 @@
+.market-item-card {
+  background: #23293a;
+  border-radius: 22px;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.32);
+  margin: 24px 16px;
+  padding: 32px 32px 18px 32px;
+  position: relative;
+  width: 50%;
+  min-width: 420px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: box-shadow 0.2s, transform 0.2s;
+  z-index: 2;
+}
+
+.market-item-card .close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  font-size: 1.7rem;
+  color: #ff5c5c;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 3;
+  transition: color 0.15s, transform 0.15s;
+  padding: 0 6px;
+  border-radius: 50%;
+}
+
+.market-item-card .close-btn:hover {
+  color: #fff;
+  background: #ff5c5c;
+  transform: scale(1.15);
+}
+
+.market-item-card h2 {
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  margin-top: 0;
+  letter-spacing: 0.01em;
+}
+
+/* Responsive for two columns */
+@media (max-width: 1200px) {
+  .market-item-card {
+    width: 90%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 18px auto;
+  }
+}
+@media (max-width: 900px) {
+  .market-item-card {
+    width: 98%;
+    padding: 18px 6px 12px 12px;
+    margin: 10px auto;
+  }
+  .market-item-card h2 {
+    font-size: 1.1rem;
+  }
+}

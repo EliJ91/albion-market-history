@@ -1,0 +1,3 @@
+Instruction for Copilot:
+
+Do NOT use any inline styling in React components. All styles must be placed in a dedicated CSS file for each component. Use className and external CSS only.
