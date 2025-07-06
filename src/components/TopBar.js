@@ -6,7 +6,7 @@ const TopBar = () => {
     <div className="top-bar">
       <div className="top-bar-content">
         <div className="logo-section">
-          <h1>Albion Market History</h1>
+          <h1 className="logo-title">Albion Market History</h1>
         </div>
       </div>
     </div>

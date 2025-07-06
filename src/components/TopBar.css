@@ -26,3 +26,7 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+.logo-title {
+  /* Inherit from .logo-section h1, but allows for future custom styles */
+}

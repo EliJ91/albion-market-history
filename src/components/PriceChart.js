@@ -47,7 +47,7 @@ const COLORS = [
 
 const QUALITIES = [1, 2, 3, 4, 5];
 
-const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, selectedTimeRange, onTimeRangeChange, selectedQuality, onQualityChange }) => {
+const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, selectedTimeRange, onTimeRangeChange, selectedQuality, onQualityChange, item }) => {
   // Time range dropdown options
   const TIME_RANGE_OPTIONS = [
     { label: '1 Week', value: '1w', days: 7 },
@@ -121,68 +121,91 @@ const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, sel
     datasets,
   };
 
+  // Get the item identifier, tier, and enchantment for the image
+  let itemIdentifier = null;
+  let itemTier = null;
+  let itemEnchant = null;
+  if (item && item.value) {
+    // item.value is like T4_MAIN_SWORD@2 or T4_MAIN_SWORD
+    const [main, enchant] = item.value.split('@');
+    itemIdentifier = main;
+    itemTier = main.split('_')[0];
+    itemEnchant = enchant || '0';
+  } else if (allData && allData.length > 0) {
+    itemIdentifier = allData[0].item_id;
+    // fallback: try to parse tier/enchant from item_id
+    const match = /^(T\d+)_.*?(?:@(\d+))?$/.exec(itemIdentifier);
+    if (match) {
+      itemTier = match[1];
+      itemEnchant = match[2] || '0';
+    }
+  }
+  let itemImageUrl = null;
+  if (itemIdentifier) {
+    itemImageUrl = `https://render.albiononline.com/v1/item/${itemIdentifier}`;
+    if (itemEnchant && itemEnchant !== '0') {
+      itemImageUrl += `@${itemEnchant}`;
+    }
+    itemImageUrl += `.png`;
+  }
+
   return (
-    <div className="price-chart-container">
-      {/* Time range and quality selector in chart container */}
-      <div className="price-chart-header">
-        <label className="price-chart-label">Time Range:</label>
-        <select value={selectedTimeRange} onChange={e => onTimeRangeChange(e.target.value)}>
-          {TIME_RANGE_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-        <label className="price-chart-label quality">Quality:</label>
-        <select value={selectedQuality} onChange={e => onQualityChange(Number(e.target.value))}>
-          {QUALITIES.map(q => (
-            <option key={q} value={q}>Q{q}</option>
-          ))}
-        </select>
-      </div>
-      <Line
-        data={chartJsData}
-        options={{
-          responsive: true,
-          plugins: {
-            legend: { display: true },
-            title: { display: false },
-          },
-          scales: {
-            x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Avg Price' } },
-          },
-        }}
-        height={180}
-      />
-      {/* City selection grid under the chart */}
-      <div className="city-checkbox-grid">
-        {allCities.map((city, idx) => {
-          const hasData = cityHasData[city];
-          return (
-            <label
-              key={city}
-              className={
-                'city-checkbox-label' + (!hasData ? ' disabled' : '')
+    <div className="price-chart-container-row">
+      <div className="price-chart-container">
+        {/* Time range, quality, and city selector in chart container */}
+        <div className="price-chart-header">
+          <label className="price-chart-label">Time Range:</label>
+          <select value={selectedTimeRange} onChange={e => onTimeRangeChange(e.target.value)}>
+            {TIME_RANGE_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <label className="price-chart-label quality">Quality:</label>
+          <select value={selectedQuality} onChange={e => onQualityChange(Number(e.target.value))}>
+            {QUALITIES.map(q => (
+              <option key={q} value={q}>Q{q}</option>
+            ))}
+          </select>
+        </div>
+        <Line
+          data={chartJsData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: { display: true },
+              title: { display: false },
+              tooltip: {
+                enabled: true,
+                callbacks: {
+                  label: function(context) {
+                    // Find the city and timestamp for this point
+                    const cityIdx = context.datasetIndex;
+                    const cityObj = chartData[cityIdx];
+                    const tsIdx = context.dataIndex;
+                    const ts = allTimestamps[tsIdx];
+                    const point = cityObj.data.find(d => d.timestamp === ts);
+                    if (point) {
+                      return `${cityObj.city}: ${point.avg_price.toLocaleString()} silver, Qty: ${point.item_count}`;
+                    } else {
+                      return `${cityObj.city}: No data`;
+                    }
+                  }
+                }
               }
-            >
-              <input
-                type="checkbox"
-                className="city-checkbox-input"
-                checked={selectedCities.includes(city)}
-                disabled={!hasData}
-                onChange={() => {
-                  if (!hasData) return;
-                  setSelectedCities(prev =>
-                    prev.includes(city)
-                      ? prev.filter(c => c !== city)
-                      : [...prev, city]
-                  );
-                }}
-              />
-              {city}
-            </label>
-          );
-        })}
+            },
+            scales: {
+              x: { title: { display: true, text: 'Date' } },
+              y: { title: { display: true, text: 'Avg Price' } },
+            },
+          }}
+          className="price-chart-canvas"
+        />
       </div>
+      {itemImageUrl && (
+        <div className="price-chart-item-image-container">
+          <img src={itemImageUrl} alt="Item" className="price-chart-item-image" />
+        </div>
+      )}
     </div>
   );
 };

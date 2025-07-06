@@ -1,6 +1,5 @@
 .market-data {
   width: 100%;
-  max-width: 1400px;
   margin: 0 auto;
   padding: 10px;
   background: rgba(255, 255, 255, 0.05);
@@ -32,6 +31,7 @@
   align-items: center;
   min-width: 320px;
   width: 100%;
+  position: relative;
 }
 
 .dropdown-filters {
@@ -162,6 +162,9 @@
 
 .market-results {
   margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .market-data-display h3 {
@@ -301,6 +304,19 @@
   }
   
   .price-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Add to MarketData.css or MarketItemCard.css */
+.grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .grid-2col {
     grid-template-columns: 1fr;
   }
 }

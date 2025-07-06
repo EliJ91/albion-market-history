@@ -133,6 +133,15 @@ const MarketData = () => {
         const response = await fetch(url);
         const data = await response.json();
         setMarketData({ success: true, data });
+        // Add a new card for the item
+        setOpenCards(prev => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            item: { key: dbResult.key, value: dbResult.value, LocalizedNames: itemDatabase[dbResult.key]?.LocalizedNames, UniqueName: dbResult.key },
+            marketData: data,
+          }
+        ]);
       } catch (error) {
         setMarketData({ success: false, error: error.message });
       } finally {
@@ -184,10 +193,13 @@ const MarketData = () => {
     const { tier, enchant } = parseItemValue(value);
     setSelectedTier('Select');
     setSelectedEnchantment('Select');
-    // Fetch API for this item and add a new card (always use value minus @N)
+    // Fetch API for this item and add a new card (always use value minus @N and never append @Select)
     setLoading(true);
     try {
       let itemId = value.split('@')[0];
+      // If enchantment is a number and not '0', append it; never append 'Select'
+      let enchantment = enchant && enchant !== '0' && enchant !== 'Select' ? enchant : '';
+      if (enchantment) itemId = `${itemId}@${enchantment}`;
       const date_to = new Date();
       const date_from = getDateNDaysAgo(90);
       const dateToStr = date_to.toISOString().split('T')[0];
@@ -202,7 +214,7 @@ const MarketData = () => {
           item: { key, value, LocalizedNames: itemDatabase[key]?.LocalizedNames, UniqueName: key },
           marketData: data,
         }
-      ]);
+      );
       setMarketData({ success: true, data });
     } catch (error) {
       // Optionally handle error
@@ -274,6 +286,10 @@ const MarketData = () => {
 
   // Helper to get item name for tier
   function getItemNameForTier(baseName, tier) {
+    // Try Tn_SOMETHING format first
+    const tKey = `${tier}_${baseName.replace(/ /g, '_')}`;
+    if (itemDatabase[tKey]) return tKey;
+    // Otherwise, use preface format
     const preface = TIER_PREFACE[tier];
     return preface ? `${preface} ${baseName}` : baseName;
   }
@@ -306,25 +322,28 @@ const MarketData = () => {
   // When user changes tier or enchantment, update item selection if possible and fetch API
   useEffect(() => {
     if (!dbResult) return;
+    // Only update if tier and enchantment are valid (not 'Select')
+    let tier = selectedTier !== 'Select' ? selectedTier : parseItemValue(dbResult.value).tier;
+    let enchant = selectedEnchantment !== 'Select' ? selectedEnchantment : parseItemValue(dbResult.value).enchant;
     const baseName = getBaseName(dbResult.key);
-    const newItemName = getItemNameForTier(baseName, selectedTier);
+    const newItemName = getItemNameForTier(baseName, tier);
     // Find the new key in itemDatabase
-    const match = Object.keys(itemDatabase).find(
-      k => k === newItemName
-    );
+    const match = Object.keys(itemDatabase).find(k => k === newItemName);
     if (match) {
-      setSearchTerm(match);
-      setDbResult({ key: match, value: itemDatabase[match] });
+      // Compose value with correct enchantment (never 'Select')
+      const baseVal = itemDatabase[match].split('@')[0];
+      const newVal = enchant && enchant !== '0' && enchant !== 'Select' ? `${baseVal}@${enchant}` : baseVal;
+      setSearchTerm(match); // Update the text field to reflect the new item name
+      setDbResult({ key: match, value: newVal });
+    } else {
+      // If no match, just update enchantment if possible
+      if (dbResult.value) {
+        const baseVal = dbResult.value.split('@')[0];
+        const newVal = enchant && enchant !== '0' && enchant !== 'Select' ? `${baseVal}@${enchant}` : baseVal;
+        setDbResult(prev => prev ? { ...prev, value: newVal } : prev);
+      }
     }
-    // If enchantment changed, update value
-    // (value is like T4_MAIN_SWORD@4, so replace @N)
-    if (dbResult.value) {
-      const baseVal = dbResult.value.split('@')[0];
-      const newVal = selectedEnchantment !== '0' ? `${baseVal}@${selectedEnchantment}` : baseVal;
-      setDbResult(prev => prev ? { ...prev, value: newVal } : prev);
-    }
-    // API fetch on dropdown change
-    setTimeout(triggerApiFetch, 0);
+    // Do NOT auto-fetch on dropdown change
   }, [selectedTier, selectedEnchantment]);
 
   // Helper to get numeric quality value from label
@@ -407,7 +426,14 @@ const MarketData = () => {
                   <div
                     key={obj.key}
                     className={`search-result-item${activeSuggestion === idx ? ' active' : ''}`}
-                    onClick={() => { handleSuggestionClick(obj.key); triggerApiFetch(); }}
+                    onClick={() => {
+                      setSearchTerm(obj.key);
+                      setSuggestions([]);
+                      setActiveSuggestion(-1);
+                      const value = itemDatabase[obj.key];
+                      setDbResult({ key: obj.key, value });
+                      // Do NOT trigger API fetch here
+                    }}
                   >
                     {obj.base}
                   </div>
@@ -460,8 +486,8 @@ const MarketData = () => {
       )}
 
       {/* Render all open item cards */}
-      <div className="market-results" style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-        {openCards.map(card => (
+      <div className="market-results grid-2col">
+        {openCards.map((card, idx) => (
           <MarketItemCard
             key={card.id}
             item={card.item}
