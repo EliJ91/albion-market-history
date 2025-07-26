@@ -6,10 +6,12 @@ import {
   PointElement,
   LinearScale,
   CategoryScale,
+  TimeScale, // <-- ADD THIS
   Title,
   Tooltip,
   Legend
 } from 'chart.js';
+import 'chartjs-adapter-date-fns'; // <-- ADD THIS for date support
 import './PriceChart.css';
 
 ChartJS.register(
@@ -17,6 +19,7 @@ ChartJS.register(
   PointElement,
   LinearScale,
   CategoryScale,
+  TimeScale, // <-- ADD THIS
   Title,
   Tooltip,
   Legend
@@ -25,29 +28,29 @@ ChartJS.register(
 
 // City color mapping
 const CITY_COLORS = {
-  Bridgewatch: '#FFD166', // desert sand orange/yellow
-  'Fort Sterling': '#F8F8FF', // Snow White
+  Caerleon: '#D7263D', // Red
+  Bridgewatch: '#FFD166', // Sand Yellow
   Lymhurst: '#228B22', // Forest Green
   Martlock: '#1E90FF', // Ocean Blue
-  Thetford: '#7C4BC9', // Off purple (cape color)
-  Caerleon: '#D7263D', // Red
-  'Black Market': '#222', // Black
+  Thetford: '#8F43B7', // Violet purple
+  'Fort Sterling': '#FFFFFF', // White
+  'Black Market': '#222222', // Black
 };
 // Fallback colors for any other cities
 const COLORS = [
+  '#D7263D', // Caerleon
   '#FFD166', // Bridgewatch
-  '#F8F8FF', // Fort Sterling
   '#228B22', // Lymhurst
   '#1E90FF', // Martlock
-  '#7C4BC9', // Thetford (off purple)
-  '#D7263D', // Caerleon (red)
-  '#222',    // Black Market (black)
+  '#8F43B7', // Thetford (violet purple)
+  '#FFFFFF', // Fort Sterling (white)
+  '#222222', // Black Market (black)
   '#667eea', '#f56565', '#48bb78', '#ed8936', '#38b2ac', '#a0aec0', '#ecc94b', '#9f7aea', '#f6ad55', '#68d391'
 ];
 
 const QUALITIES = [1, 2, 3, 4, 5];
 
-const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, selectedTimeRange, onTimeRangeChange, selectedQuality, onQualityChange, item }) => {
+const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChange, item, selectedCities }) => {
   // Time range dropdown options
   const TIME_RANGE_OPTIONS = [
     { label: '1 Week', value: '1w', days: 7 },
@@ -60,156 +63,114 @@ const PriceChart = ({ allData, allCities, selectedCities, setSelectedCities, sel
   const selectedOption = TIME_RANGE_OPTIONS.find(opt => opt.value === selectedTimeRange) || TIME_RANGE_OPTIONS[2];
   const minTimestamp = now - selectedOption.days * 24 * 60 * 60 * 1000;
 
-  // Group all data by city and quality (do not filter by date yet)
-  const cityGroups = {};
+  // --- FILTER LOGIC ---
+  // Always filter by selected quality (default 1) and selected cities
+  const filteredQuality = selectedQuality == null ? 1 : selectedQuality;
+  const datasets = [];
   allData.forEach(entry => {
-    if (!cityGroups[entry.location]) cityGroups[entry.location] = {};
-    Object.keys(entry).forEach(key => {
-      if (key === 'quality' || key === 'location' || key === 'item_id') return;
-      if (!cityGroups[entry.location][entry.quality]) cityGroups[entry.location][entry.quality] = [];
-      cityGroups[entry.location][entry.quality].push(...entry.data);
-    });
+    if (
+      (!selectedCities || selectedCities.includes(entry.location)) &&
+      entry.quality === filteredQuality
+    ) {
+      datasets.push({
+        label: entry.location,
+        data: entry.data.map(d => ({
+          x: d.timestamp,
+          y: d.avg_price,
+          item_count: d.item_count
+        })),
+        fill: false,
+        borderColor: CITY_COLORS[entry.location] || COLORS[datasets.length % COLORS.length],
+        backgroundColor: CITY_COLORS[entry.location] || COLORS[datasets.length % COLORS.length],
+        pointRadius: 2,
+        tension: 0.2,
+      });
+    }
   });
 
-  // For each city, check if it has data for the selected quality
-  const cityHasData = {};
-  allCities.forEach(city => {
-    cityHasData[city] = cityGroups[city] && cityGroups[city][selectedQuality] && cityGroups[city][selectedQuality].length > 0;
-  });
-
-  // Only plot selected cities, filter by selected time range here
-  const citiesToPlot = selectedCities;
-  const chartData = citiesToPlot.map((city, idx) => {
-    // Use only data for the selected quality, filter by date here
-    const cityQualityData = ((cityGroups[city] && cityGroups[city][selectedQuality]) || []).filter(d => new Date(d.timestamp).getTime() >= minTimestamp);
-    // Use mapped color if city is in CITY_COLORS, else fallback to COLORS
-    const color = CITY_COLORS[city] || COLORS[idx % COLORS.length];
-    return {
-      city,
-      color,
-      data: cityQualityData
-    };
-  });
-
-  // Find all unique timestamps (x-axis)
-  const allTimestamps = Array.from(new Set(
-    chartData.flatMap(cityObj => cityObj.data.map(d => d.timestamp))
-  )).sort();
-
-  // Prepare datasets for each city
-  const datasets = chartData.map((cityObj, idx) => ({
-    label: cityObj.city,
-    data: allTimestamps.map(ts => {
-      const point = cityObj.data.find(d => d.timestamp === ts);
-      return point ? point.avg_price : null;
-    }),
-    fill: false,
-    borderColor: cityObj.color,
-    backgroundColor: cityObj.color,
-    pointRadius: 2,
-    tension: 0.2,
-  }));
-
-  // Format date as MM-DD
+  // Chart.js expects labels for category scale, but with x/y objects, we use x as timestamp
   const chartJsData = {
-    labels: allTimestamps.map(ts => {
-      const d = new Date(ts);
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${mm}-${dd}`;
-    }),
     datasets,
   };
 
-  // Get the item identifier, tier, and enchantment for the image
-  let itemIdentifier = null;
-  let itemTier = null;
-  let itemEnchant = null;
-  if (item && item.value) {
-    // item.value is like T4_MAIN_SWORD@2 or T4_MAIN_SWORD
-    const [main, enchant] = item.value.split('@');
-    itemIdentifier = main;
-    itemTier = main.split('_')[0];
-    itemEnchant = enchant || '0';
-  } else if (allData && allData.length > 0) {
-    itemIdentifier = allData[0].item_id;
-    // fallback: try to parse tier/enchant from item_id
-    const match = /^(T\d+)_.*?(?:@(\d+))?$/.exec(itemIdentifier);
-    if (match) {
-      itemTier = match[1];
-      itemEnchant = match[2] || '0';
-    }
-  }
-  let itemImageUrl = null;
-  if (itemIdentifier) {
-    itemImageUrl = `https://render.albiononline.com/v1/item/${itemIdentifier}`;
-    if (itemEnchant && itemEnchant !== '0') {
-      itemImageUrl += `@${itemEnchant}`;
-    }
-    itemImageUrl += `.png`;
+  // Helper to abbreviate price values
+  function abbreviateNumber(value) {
+    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (value >= 1_000) return (value / 1_000).toFixed(0) + 'K';
+    return value.toString();
   }
 
+  // Chart options
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: false },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          title: function() { return ''; }, // Remove the default title (which is the x value)
+          label: function(context) {
+            const d = new Date(context.raw.x);
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${mm}/${dd}  Qty: ${context.raw.item_count}  Price: ${context.raw.y.toLocaleString()}`;
+          },
+        },
+      },
+    },
+    elements: {
+      point: {
+        radius: 2,
+        hoverRadius: 4,
+      },
+    },
+    scales: {
+      x: {
+        display: true, // Show x axis
+        type: 'time', // Use time scale for correct date mapping
+        time: {
+          unit: 'day',
+          tooltipFormat: 'MM/dd',
+          displayFormats: {
+            day: 'MM-dd'
+          }
+        },
+        grid: { display: true, color: '#444', lineWidth: 1 }, // Lighten grid lines
+        ticks: {
+          display: true,
+          color: '#aaa',
+          font: { size: 11 }
+        },
+        title: { display: false },
+      },
+      y: {
+        display: true, // Show y axis
+        grid: { display: true, color: '#444', lineWidth: 1 }, // Lighten grid lines
+        ticks: {
+          display: true,
+          callback: function(value) {
+            return abbreviateNumber(value);
+          },
+          color: '#aaa',
+          font: { size: 11 }
+        },
+        title: { display: false }
+      }
+    },
+  };
+
   return (
-    <div className="price-chart-container-row">
-      <div className="price-chart-container">
-        {/* Time range, quality, and city selector in chart container */}
-        <div className="price-chart-header">
-          <label className="price-chart-label">Time Range:</label>
-          <select value={selectedTimeRange} onChange={e => onTimeRangeChange(e.target.value)}>
-            {TIME_RANGE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <label className="price-chart-label quality">Quality:</label>
-          <select value={selectedQuality} onChange={e => onQualityChange(Number(e.target.value))}>
-            {QUALITIES.map(q => (
-              <option key={q} value={q}>Q{q}</option>
-            ))}
-          </select>
-        </div>
+    <div className="price-chart-container-row minimal-padding">
+      <div className="price-chart-container full-width minimal-padding">
         <Line
           data={chartJsData}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: { display: true },
-              title: { display: false },
-              tooltip: {
-                enabled: true,
-                callbacks: {
-                  label: function(context) {
-                    // Find the city and timestamp for this point
-                    const cityIdx = context.datasetIndex;
-                    const cityObj = chartData[cityIdx];
-                    const tsIdx = context.dataIndex;
-                    const ts = allTimestamps[tsIdx];
-                    const point = cityObj.data.find(d => d.timestamp === ts);
-                    if (point) {
-                      return `${cityObj.city}: ${point.avg_price.toLocaleString()} silver, Qty: ${point.item_count}`;
-                    } else {
-                      return `${cityObj.city}: No data`;
-                    }
-                  }
-                }
-              }
-            },
-            scales: {
-              x: { title: { display: true, text: 'Date' } },
-              y: { title: { display: true, text: 'Avg Price' } },
-            },
-          }}
+          options={chartOptions}
           className="price-chart-canvas"
         />
       </div>
-      {itemImageUrl && (
-        <div className="price-chart-item-image-container">
-          <img src={itemImageUrl} alt="Item" className="price-chart-item-image" />
-        </div>
-      )}
     </div>
   );
 };
-
-
 
 export default PriceChart;

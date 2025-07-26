@@ -5,7 +5,10 @@
   box-shadow: 0 8px 32px 0 rgba(0,0,0,0.32);
   padding: 18px;
   position: relative;
-  min-width: 340px;
+  width: 100%;
+  min-width: 320px;
+  max-width: 700px;
+  margin: 0;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -61,10 +64,153 @@
 }
 
 .market-item-title {
-  margin-bottom: 6px;
   font-size: 1.3rem;
   font-weight: 700;
   color: #fff;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.results-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  justify-items: center;
+  align-items: start;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.market-item-main-col {
+  width: 100%;
+}
+
+.dropdown-multicheckbox {
+  position: relative;
+  display: inline-block;
+}
+
+.city-dropdown-btn {
+  min-width: 60px;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  height: 28px;
+  border-radius: 4px;
+  margin: 0 2px;
+  background: #23232b;
+  color: #fff;
+  border: 1px solid #333;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.dropdown-list {
+  display: none;
+  position: absolute;
+  background: #23283a;
+  z-index: 10;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0008;
+  padding: 8px;
+  min-width: 180px;
+  left: 0;
+  top: 100%;
+}
+
+.dropdown-list.dropdown-list-open {
+  display: block;
+}
+
+.city-checkbox-item {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95em;
+  font-weight: 500;
+}
+
+.city-legend-label {
+  margin-left: 6px;
+}
+
+/* Color for city label is set inline via style={{ color: cityColors[city] }} */
+
+.market-item-controls-row {
+  display: flex;
+  flex-direction: row;
+  gap: 1.2rem;
+  align-items: flex-start;
+  margin-top: 0;
+}
+
+.market-item-quality-selector, .market-item-city-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.input-label {
+  font-size: 0.95em;
+  color: #aaa;
+  margin-bottom: 2px;
+}
+
+.filter-dropdown {
+  min-width: 60px;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  height: 28px;
+  border-radius: 4px;
+  margin: 0 2px;
+  background: #23232b;
+  color: #fff;
+  border: 1px solid #333;
+  box-shadow: none;
+}
+
+/* City legend and dropdown color classes */
+.city-caerleon { color: #D7263D !important; }
+.city-bridgewatch { color: #FFD166 !important; }
+.city-lymhurst { color: #228B22 !important; }
+.city-martlock { color: #1E90FF !important; }
+.city-thetford { color: #8F43B7 !important; }
+.city-fortsterling { color: #F8F8FF !important; text-shadow: 0 0 2px #222; }
+.city-blackmarket { color: #222222 !important; }
+.city-disabled { color: #888 !important; }
+
+.city-legend-checkbox.city-caerleon { accent-color: #D7263D; }
+.city-legend-checkbox.city-bridgewatch { accent-color: #FFD166; }
+.city-legend-checkbox.city-lymhurst { accent-color: #228B22; }
+.city-legend-checkbox.city-martlock { accent-color: #1E90FF; }
+.city-legend-checkbox.city-thetford { accent-color: #8F43B7; }
+.city-legend-checkbox.city-fortsterling { accent-color: #F8F8FF; }
+.city-legend-checkbox.city-blackmarket { accent-color: #222222; }
+.city-legend-checkbox.city-disabled { accent-color: #888; }
+
+.enchant-label {
+  margin-left: 0.4em;
+  font-size: 1.1em;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 6px rgba(0,255,128,0.7), 0 0 2px #000;
+}
+.enchant-1 {
+  color: #39ff14;
+  text-shadow: 0 0 8px #39ff14, 0 0 2px #000;
+}
+.enchant-2 {
+  color: #00e1ff;
+  text-shadow: 0 0 8px #00e1ff, 0 0 2px #000;
+}
+.enchant-3 {
+  color: #b266ff;
+  text-shadow: 0 0 8px #b266ff, 0 0 2px #000;
+}
+.enchant-4 {
+  color: #ffd700;
+  text-shadow: 0 0 10px #ffd700, 0 0 2px #000;
 }
 
 @media (max-width: 1200px) {
@@ -95,4 +241,14 @@
   .market-item-title {
     font-size: 1.05rem;
   }
+}
+
+.market-item-header-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 100%;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
 }

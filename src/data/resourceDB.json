@@ -1,0 +1,22 @@
+{
+  "resources": [
+    "PLANKS",
+    "WOOD",
+    "METALBAR",
+    "ORE",
+    "ROCK",
+    "LEATHER",
+    "HIDE",
+    "CLOTH",
+    "FIBER",
+    "ENCHANTED_PLANKS",
+    "ENCHANTED_WOOD",
+    "ENCHANTED_METALBAR",
+    "ENCHANTED_ORE",
+    "ENCHANTED_ROCK",
+    "ENCHANTED_LEATHER",
+    "ENCHANTED_HIDE",
+    "ENCHANTED_CLOTH",
+    "ENCHANTED_FIBER"
+  ]
+}

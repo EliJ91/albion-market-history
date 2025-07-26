@@ -7,6 +7,18 @@ import itemDatabase from '../data/itemDatabase.json';
 import PriceChart from './PriceChart';
 import MarketItemCard from './MarketItemCard';
 
+// Helper to generate a color palette for cities
+const CITY_COLOR_PALETTE = [
+  '#4fd1c5', '#f56565', '#f6e05e', '#63b3ed', '#ed64a6', '#68d391', '#a0aec0', '#f6ad55', '#9f7aea', '#38b2ac', '#e53e3e', '#ecc94b', '#3182ce', '#d53f8c', '#38a169', '#718096', '#dd6b20', '#6b46c1', '#319795', '#c53030', '#b7791f', '#2b6cb0', '#97266d', '#276749', '#4a5568', '#b83280', '#22543d', '#2c5282', '#553c9a', '#234e52', '#1a202c'
+];
+function getCityColors(cityList) {
+  const colors = {};
+  cityList.forEach((city, i) => {
+    colors[city] = CITY_COLOR_PALETTE[i % CITY_COLOR_PALETTE.length];
+  });
+  return colors;
+}
+
 const MarketData = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -17,10 +29,6 @@ const MarketData = () => {
   const [selectedTier, setSelectedTier] = useState('Select');
   const [selectedEnchantment, setSelectedEnchantment] = useState('Select');
   const [selectedQuality, setSelectedQuality] = useState('All'); // 'All' or number
-  // Add state for selected cities
-  const [selectedCities, setSelectedCities] = useState([]);
-  // Add state for selected time range
-  const [selectedTimeRange, setSelectedTimeRange] = useState('1w'); // default 1 week
 
   // Filter options
   const tierOptions = ['Select', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'];
@@ -47,56 +55,32 @@ const MarketData = () => {
   // Add state for selected quality per location
   const [locationQualities, setLocationQualities] = useState({});
 
-  // Helper to normalize strings (remove punctuation, lower case)
-  function normalize(str) {
-    return str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  // Resource types that use _LEVELN@N for enchantment
+  const RESOURCE_TYPES = [
+    'PLANKS', 'WOOD', 'METALBAR', 'ORE', 'ROCK', 'LEATHER', 'HIDE', 'CLOTH', 'FIBER'
+  ];
+  function isResource(val) {
+    return RESOURCE_TYPES.some(type => val.includes(type));
   }
-
-  // Helper to get base weapon name (strip tier/preface and enchant)
-  function getBaseWeaponName(itemName) {
-    // Remove tier preface (e.g., "Adept's ", "Expert's ", etc.)
-    const prefaces = [
-      "Beginner's", "Novice's", "Journeyman's", "Adept's", "Expert's", "Master's", "Grandmaster's", "Elder's"
-    ];
-    let base = itemName;
-    for (const preface of prefaces) {
-      if (base.startsWith(preface + ' ')) {
-        base = base.slice(preface.length + 1);
-        break;
+  function buildItemValue(baseVal, enchant) {
+    if (isResource(baseVal)) {
+      if (enchant && enchant !== '0' && enchant !== 'Select') {
+        // Remove _LEVELN and @N if present
+        const noLevel = baseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
+        return `${noLevel}_LEVEL${enchant}@${enchant}`;
+      } else {
+        // Unenchanted resource
+        return baseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
       }
-    }
-    // Remove enchantment suffix (e.g., "@1", "@2") if present
-    base = base.replace(/@\d+$/, '');
-    return base.trim();
-  }
-
-  // Modified handleDbSearch for normalization and unique base weapon names
-  const handleDbSearch = (term) => {
-    if (!term) {
-      setDbResult(null);
-      setSuggestions([]);
-      return;
-    }
-    const normTerm = normalize(term);
-    const seen = new Set();
-    const matches = [];
-    for (const key of Object.keys(itemDatabase)) {
-      if (normalize(key).includes(normTerm)) {
-        const base = getBaseWeaponName(key);
-        if (!seen.has(base.toLowerCase())) {
-          seen.add(base.toLowerCase());
-          matches.push({ key, base });
-        }
-      }
-    }
-    setSuggestions(matches.slice(0, 10));
-    const exact = matches.find(obj => normalize(obj.key) === normTerm);
-    if (exact) {
-      setDbResult({ key: exact.key, value: itemDatabase[exact.key] });
     } else {
-      setDbResult(null);
+      // Gear and other items
+      if (enchant && enchant !== '0' && enchant !== 'Select') {
+        return `${baseVal.split('@')[0]}@${enchant}`;
+      } else {
+        return baseVal.split('@')[0];
+      }
     }
-  };
+  }
 
   // Helper to get ISO date string for N days ago
   function getDateNDaysAgo(days) {
@@ -112,7 +96,8 @@ const MarketData = () => {
     { label: '2 Weeks', value: '2w', timeScale: 24, days: 14 },
     { label: '4 Weeks', value: '4w', timeScale: 24, days: 28 },
   ];
-  const selectedTimeOption = TIME_RANGE_OPTIONS.find(opt => opt.value === selectedTimeRange) || TIME_RANGE_OPTIONS[2];
+  // Remove selectedTimeRange from this file
+  // const selectedTimeOption = TIME_RANGE_OPTIONS.find(opt => opt.value === selectedTimeRange) || TIME_RANGE_OPTIONS[2];
 
   // Unified function to trigger API fetch
   // Store market data for the currently selected item (for filters, etc.)
@@ -120,29 +105,32 @@ const MarketData = () => {
 
   const triggerApiFetch = async () => {
     if (dbResult && dbResult.value) {
-      let itemId = dbResult.value;
-      // Always remove @N for initial fetch (predictive text selection)
-      itemId = itemId.split('@')[0];
-      // Calculate date_from and date_to (now pulls 4 weeks/28 days)
+      let tier = selectedTier !== 'Select' ? selectedTier : parseItemValue(dbResult.value).tier;
+      let enchant = selectedEnchantment !== 'Select' ? selectedEnchantment : parseItemValue(dbResult.value).enchant;
+      let baseVal = dbResult.value.split('@')[0];
+      let itemId = buildItemValue(baseVal, enchant);
+      // Always use default time range for API fetch
       const date_to = new Date();
-      const date_from = getDateNDaysAgo(28); // Always fetch 4 weeks (28 days)
+      const date_from = getDateNDaysAgo(7);
       const dateToStr = date_to.toISOString().split('T')[0];
-      const timeScale = 24;
-      const url = `${getHistoryApiUrl(itemId, { timeScale })}&date_from=${date_from}&date_to=${dateToStr}`;
+      const url = `${getHistoryApiUrl(itemId, { timeScale: 24 })}&date_from=${date_from}&date_to=${dateToStr}`;
       setLoading(true);
       try {
         const response = await fetch(url);
         const data = await response.json();
         setMarketData({ success: true, data });
-        // Add a new card for the item
-        setOpenCards(prev => [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            item: { key: dbResult.key, value: dbResult.value, LocalizedNames: itemDatabase[dbResult.key]?.LocalizedNames, UniqueName: dbResult.key },
-            marketData: data,
-          }
-        ]);
+        setOpenCards(prev => {
+          // Remove any card with the same itemId
+          const filtered = prev.filter(card => card.item.value !== itemId);
+          return [
+            {
+              id: Date.now() + Math.random(),
+              item: { key: dbResult.key, value: itemId, LocalizedNames: itemDatabase[dbResult.key]?.LocalizedNames, UniqueName: dbResult.key },
+              marketData: data,
+            },
+            ...filtered
+          ];
+        });
       } catch (error) {
         setMarketData({ success: false, error: error.message });
       } finally {
@@ -183,42 +171,110 @@ const MarketData = () => {
     }
   };
 
-  // When user selects a suggestion (item)
-  const handleSuggestionClick = async (key) => {
+  // Helper to parse value (e.g. T4_MAIN_SWORD@4)
+  function parseItemValue(val) {
+    const [main, enchant] = val.split('@');
+    const tier = main.split('_')[0];
+    return { tier, enchant: enchant || '0' };
+  }
+
+  // Helper to get preface from item name
+  function getPreface(itemName) {
+    const found = Object.values(TIER_PREFACE).find(pref => itemName.startsWith(pref));
+    return found || null;
+  }
+  // Helper to get base name (without preface)
+  function getBaseName(itemName) {
+    const preface = getPreface(itemName);
+    if (preface) return itemName.replace(preface + ' ', '');
+    return itemName;
+  }
+  // Helper to get item name for tier
+  function getItemNameForTier(baseName, tier) {
+    // Try Tn_SOMETHING format first
+    const tKey = `${tier}_${baseName.replace(/ /g, '_')}`;
+    if (itemDatabase[tKey]) return tKey;
+    // Otherwise, use preface format
+    const preface = TIER_PREFACE[tier];
+    return preface ? `${preface} ${baseName}` : baseName;
+  }
+
+  // --- SUGGESTION HANDLING ---
+  function normalize(str) {
+    return str.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+  }
+  const handleDbSearch = (term) => {
+    if (!term) {
+      setDbResult(null);
+      setSuggestions([]);
+      return;
+    }
+    const normTerm = normalize(term);
+    const matches = [];
+    for (const key of Object.keys(itemDatabase)) {
+      if (normalize(key).includes(normTerm)) {
+        matches.push({ key });
+      }
+    }
+    setSuggestions(matches.slice(0, 20)); // Show up to 20 results, all matching keys
+    // Do not setDbResult here; only set on click/enter
+  };
+
+  // --- DROPDOWN CHANGE HANDLING ---
+  useEffect(() => {
+    if (!dbResult) return;
+    let tier = selectedTier !== 'Select' ? selectedTier : parseItemValue(dbResult.value).tier;
+    let enchant = selectedEnchantment !== 'Select' ? selectedEnchantment : parseItemValue(dbResult.value).enchant;
+    const baseName = getBaseName(dbResult.key);
+    const newItemName = getItemNameForTier(baseName, tier);
+    const match = Object.keys(itemDatabase).find(k => k === newItemName);
+    if (match) {
+      const baseVal = itemDatabase[match].split('@')[0];
+      const newVal = buildItemValue(baseVal, enchant);
+      setSearchTerm(match);
+      setDbResult({ key: match, value: newVal });
+    } else if (dbResult.value) {
+      const baseVal = dbResult.value.split('@')[0];
+      const newVal = buildItemValue(baseVal, enchant);
+      setDbResult(prev => prev ? { ...prev, value: newVal } : prev);
+    }
+    // Do NOT auto-fetch on dropdown change
+  }, [selectedTier, selectedEnchantment]);
+
+  // --- SUGGESTION CLICK HANDLING ---
+  const handleSuggestionClick = async (suggestion) => {
+    const key = typeof suggestion === 'string' ? suggestion : suggestion.key;
     setSearchTerm(key);
     setSuggestions([]);
     setActiveSuggestion(-1);
     const value = itemDatabase[key];
     setDbResult({ key, value });
-    // Parse value for tier and enchantment
-    const { tier, enchant } = parseItemValue(value);
     setSelectedTier('Select');
     setSelectedEnchantment('Select');
-    // Fetch API for this item and add a new card (always use value minus @N and never append @Select)
     setLoading(true);
     try {
-      let itemId = value.split('@')[0];
-      // If enchantment is a number and not '0', append it; never append 'Select'
-      let enchantment = enchant && enchant !== '0' && enchant !== 'Select' ? enchant : '';
-      if (enchantment) itemId = `${itemId}@${enchantment}`;
+      let baseVal = value.split('@')[0];
+      let itemId = buildItemValue(baseVal, parseItemValue(value).enchant);
       const date_to = new Date();
-      const date_from = getDateNDaysAgo(90);
+      const date_from = getDateNDaysAgo(7);
       const dateToStr = date_to.toISOString().split('T')[0];
-      const timeScale = 24;
-      const url = `${getHistoryApiUrl(itemId, { timeScale })}&date_from=${date_from}&date_to=${dateToStr}`;
+      const url = `${getHistoryApiUrl(itemId, { timeScale: 24 })}&date_from=${date_from}&date_to=${dateToStr}`;
       const response = await fetch(url);
       const data = await response.json();
-      setOpenCards(prev => [
-        ...prev,
-        {
-          id: Date.now() + Math.random(),
-          item: { key, value, LocalizedNames: itemDatabase[key]?.LocalizedNames, UniqueName: key },
-          marketData: data,
-        }
-      ]);
+      setOpenCards(prev => {
+        // Remove any card with the same itemId
+        const filtered = prev.filter(card => card.item.value !== itemId);
+        return [
+          ...filtered,
+          {
+            id: Date.now() + Math.random(),
+            item: { key, value: itemId, LocalizedNames: itemDatabase[key]?.LocalizedNames, UniqueName: key },
+            marketData: data,
+          }
+        ];
+      });
       setMarketData({ success: true, data });
     } catch (error) {
-      // Optionally handle error
       setMarketData({ success: false, error: error.message });
     } finally {
       setLoading(false);
@@ -272,36 +328,6 @@ const MarketData = () => {
   // Preface to tier mapping
   const PREFACE_TIER = Object.fromEntries(Object.entries(TIER_PREFACE).map(([tier, preface]) => [preface, tier]));
 
-  // Helper to get preface from item name
-  function getPreface(itemName) {
-    const found = Object.values(TIER_PREFACE).find(pref => itemName.startsWith(pref));
-    return found || null;
-  }
-
-  // Helper to get base name (without preface)
-  function getBaseName(itemName) {
-    const preface = getPreface(itemName);
-    if (preface) return itemName.replace(preface + ' ', '');
-    return itemName;
-  }
-
-  // Helper to get item name for tier
-  function getItemNameForTier(baseName, tier) {
-    // Try Tn_SOMETHING format first
-    const tKey = `${tier}_${baseName.replace(/ /g, '_')}`;
-    if (itemDatabase[tKey]) return tKey;
-    // Otherwise, use preface format
-    const preface = TIER_PREFACE[tier];
-    return preface ? `${preface} ${baseName}` : baseName;
-  }
-
-  // Helper to parse value (e.g. T4_MAIN_SWORD@4)
-  function parseItemValue(val) {
-    const [main, enchant] = val.split('@');
-    const tier = main.split('_')[0];
-    return { tier, enchant: enchant || '0' };
-  }
-
   // Helper to get available qualities for a location's data
   function getQualitiesForLocation(dataArr) {
     const unique = Array.from(new Set(dataArr.map(d => d.quality)));
@@ -323,241 +349,135 @@ const MarketData = () => {
   // When user changes tier or enchantment, update item selection if possible and fetch API
   useEffect(() => {
     if (!dbResult) return;
-    // Only update if tier and enchantment are valid (not 'Select')
     let tier = selectedTier !== 'Select' ? selectedTier : parseItemValue(dbResult.value).tier;
     let enchant = selectedEnchantment !== 'Select' ? selectedEnchantment : parseItemValue(dbResult.value).enchant;
-    // Find a key in itemDatabase that starts with the selected tier and ends with the same suffix as the current key (after the first underscore)
-    const keySuffix = dbResult.key.substring(dbResult.key.indexOf('_') + 1); // e.g., PLANKS_LEVEL1
-    let matchKey = Object.keys(itemDatabase).find(k => k.startsWith(tier + '_') && k.endsWith(keySuffix));
-    let newVal = null;
-    const ENCHANT_SUFFIX_TYPES = ["WOOD", "PLANK", "ORE", "BAR", "FIBER", "CLOTH", "LEATHER", "HIDE", "STONE"];
-    function needsLevelSuffix(val) {
-      return ENCHANT_SUFFIX_TYPES.some(type => val.endsWith(type));
-    }
-    function stripLevel(val) {
-      // Remove _LEVELN or _LEVELN@N from the end
-      return val.replace(/_LEVEL\d+(@\d+)?$/, '');
-    }
-    if (enchant && enchant !== '0' && enchant !== 'Select') {
-      let dbVal = matchKey ? itemDatabase[matchKey] : dbResult.value;
-      if (needsLevelSuffix(dbVal)) {
-        // Resource items: always _LEVELN@N
-        newVal = `${stripLevel(dbVal)}_LEVEL${enchant}@${enchant}`;
-      } else {
-        // Gear and other items: only @N
-        // Remove any existing @N
-        let baseVal = dbVal.split('@')[0];
-        newVal = `${baseVal}@${enchant}`;
-      }
-    } else if (matchKey) {
-      newVal = itemDatabase[matchKey];
-    }
-    if (matchKey && newVal) {
-      setSearchTerm(matchKey);
-      setDbResult({ key: matchKey, value: newVal });
+    const baseName = getBaseName(dbResult.key);
+    const newItemName = getItemNameForTier(baseName, tier);
+    const match = Object.keys(itemDatabase).find(k => k === newItemName);
+    if (match) {
+      const baseVal = itemDatabase[match].split('@')[0];
+      const newVal = buildItemValue(baseVal, enchant);
+      setSearchTerm(match);
+      setDbResult({ key: match, value: newVal });
     } else if (dbResult.value) {
-      let dbVal = dbResult.value;
-      if (enchant && enchant !== '0' && enchant !== 'Select') {
-        if (needsLevelSuffix(dbVal)) {
-          newVal = `${stripLevel(dbVal)}_LEVEL${enchant}@${enchant}`;
-        } else {
-          let baseVal = dbVal.split('@')[0];
-          newVal = `${baseVal}@${enchant}`;
-        }
-      } else {
-        newVal = dbVal;
-      }
+      const baseVal = dbResult.value.split('@')[0];
+      const newVal = buildItemValue(baseVal, enchant);
       setDbResult(prev => prev ? { ...prev, value: newVal } : prev);
     }
     // Do NOT auto-fetch on dropdown change
   }, [selectedTier, selectedEnchantment]);
 
-  // Helper to get numeric quality value from label
-  function getQualityValue(label) {
-    if (label === 'All') return null;
-    const idx = QUALITIES.indexOf(label);
-    return idx > 0 ? idx : 1;
-  }
+  // Add city selection state per card
+  const [cardCitySelections, setCardCitySelections] = useState({}); // { [cardId]: [selectedCities] }
 
-  // Add these before the return statement
+  // Helper to get all cities (always show all, even if no data)
   const allCities = Object.keys(CITIES);
-  const allQualities = marketData && marketData.data ? Array.from(new Set(marketData.data.map(entry => entry.quality))).sort((a,b)=>a-b) : [];
+  const cityColors = getCityColors(allCities);
 
-  // Helper: get cities with data for selected quality
-  function getCitiesWithData() {
-    if (!marketData || !marketData.data) return [];
-    if (selectedQuality === 'All') {
-      return Array.from(new Set(marketData.data.map(entry => entry.location)));
-    }
-    return Array.from(new Set(marketData.data.filter(entry => String(entry.quality) === String(selectedQuality)).map(entry => entry.location)));
-  }
-  const citiesWithData = getCitiesWithData();
-
-  // Handle city checkbox change
-  const handleCityChange = (city) => {
-    setSelectedCities((prev) =>
-      prev.includes(city)
-        ? prev.filter((c) => c !== city)
-        : [...prev, city]
-    );
+  // Handler to toggle city selection for a card
+  const handleCityToggle = (cardId, city) => {
+    setCardCitySelections(prev => {
+      const selected = prev[cardId] || allCities;
+      return {
+        ...prev,
+        [cardId]: selected.includes(city)
+          ? selected.filter(c => c !== city)
+          : [...selected, city],
+      };
+    });
   };
 
-  // On first data load, select all cities with data by default
-  useEffect(() => {
-    if (marketData && marketData.data && selectedCities.length === 0) {
-      setSelectedCities(getCitiesWithData());
-    }
-    // eslint-disable-next-line
-  }, [marketData]);
-
-  // Hide suggestions dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target) &&
-        searchInputRef.current &&
-        !searchInputRef.current.contains(event.target)
-      ) {
-        setSuggestions([]);
-        setActiveSuggestion(-1);
-      }
-    }
-    if (suggestions.length > 0) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [suggestions]);
+  // Handler to set city selection for a card (for multi-select dropdown)
+  const handleCityDropdownChange = (cardId, cities) => {
+    setCardCitySelections(prev => ({
+      ...prev,
+      [cardId]: cities.length > 0 ? cities : allCities, // default to all if empty
+    }));
+  };
 
   return (
     <div className="market-data">
-      <div className="header-section">
-        <div className="filters-section">
-          <div className="search-section">
-            <label className="input-label" htmlFor="item-search">Item Name</label>
-            <input
-              id="item-search"
-              type="text"
-              placeholder="Search items..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                handleSearch(e.target.value);
-                handleDbSearch(e.target.value);
-                setActiveSuggestion(-1);
-              }}
-              onKeyDown={handleKeyDown}
-              className="search-input"
-              ref={searchInputRef}
-            />
-            {searchResults.length > 0 && (
-              <div className="search-results">
-                {searchResults.map((item, index) => (
-                  <div
-                    key={index}
-                    className="search-result-item"
-                    onClick={() => handleItemSelect(item)}
-                  >
-                    {item.LocalizedNames?.['EN-US'] || item.UniqueName}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Suggestions dropdown for itemDatabase */}
-            {suggestions.length > 0 && (
-              <div
-                className="search-results"
-                ref={suggestionsRef}
-              >
-                {suggestions.map((obj, idx) => (
-                  <div
-                    key={obj.key}
-                    className={`search-result-item${activeSuggestion === idx ? ' active' : ''}`}
-                    tabIndex={0}
-                    onClick={() => {
-                      setSearchTerm(obj.key);
-                      setSuggestions([]);
-                      setActiveSuggestion(-1);
-                      const value = itemDatabase[obj.key];
-                      setDbResult({ key: obj.key, value });
-                      // Do NOT trigger API fetch here
-                    }}
-                  >
-                    {obj.key}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="dropdown-filters">
-            <div className="dropdown-group">
-              <label className="input-label" htmlFor="tier-select">Tier</label>
-              <select 
-                id="tier-select"
-                value={selectedTier} 
-                onChange={(e) => setSelectedTier(e.target.value)}
-                className="filter-dropdown"
-              >
-                {tierOptions.map(tier => (
-                  <option key={tier} value={tier} disabled={tier === 'Select'}>{tier === 'Select' ? 'Select Tier' : tier}</option>
-                ))}
-              </select>
-            </div>
-            <div className="dropdown-group">
-              <label className="input-label" htmlFor="enchant-select">Enchantment</label>
-              <select 
-                id="enchant-select"
-                value={selectedEnchantment} 
-                onChange={(e) => setSelectedEnchantment(e.target.value)}
-                className="filter-dropdown"
-              >
-                {enchantmentOptions.map(ench => (
-                  <option key={ench} value={ench} disabled={ench === 'Select'}>
-                    {ench === 'Select' ? 'Select Enchantment' : `+${ench}`}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {/* Time Range dropdown removed from search area */}
-            <button
-              className="filter-dropdown search-btn"
-              onClick={triggerApiFetch}
-            >
-              Search
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {loading && (
-        <div className="loading">Loading market data...</div>
-      )}
-
-      {/* Render all open item cards */}
-      <div className="market-results grid-2col">
-        {openCards.map((card, idx) => (
-          <MarketItemCard
-            key={card.id}
-            item={card.item}
-            marketData={card.marketData}
-            allCities={allCities}
-            onClose={() => setOpenCards(prev => prev.filter(c => c.id !== card.id))}
+      <div className="search-row">
+        <div className="search-bar-group">
+          <label className="input-label" htmlFor="item-search">Item Name</label>
+          <input
+            id="item-search"
+            type="text"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              handleDbSearch(e.target.value);
+              setActiveSuggestion(-1);
+            }}
+            placeholder="Search for items..."
+            ref={searchInputRef}
+            onKeyDown={handleKeyDown}
+            className="search-input"
           />
-        ))}
+          {suggestions.length > 0 && (
+            <div className="suggestions" ref={suggestionsRef}>
+              {suggestions.map((suggestion, index) => (
+                <div
+                  key={suggestion.key}
+                  className={`suggestion-item ${activeSuggestion === index ? 'active' : ''}`}
+                  onClick={() => {
+                    setSearchTerm(suggestion.key);
+                    setSuggestions([]);
+                    setActiveSuggestion(-1);
+                    const value = itemDatabase[suggestion.key];
+                    setDbResult({ key: suggestion.key, value });
+                    setSelectedTier('Select');
+                    setSelectedEnchantment('Select');
+                  }}
+                >
+                  {suggestion.key}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="filter-group">
+          <label className="input-label">Tier:</label>
+          <select value={selectedTier} onChange={(e) => setSelectedTier(e.target.value)} className="filter-dropdown">
+            {tierOptions.map(tier => (
+              <option key={tier} value={tier}>{tier}</option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-group">
+          <label className="input-label">Enchantment:</label>
+          <select value={selectedEnchantment} onChange={(e) => setSelectedEnchantment(e.target.value)} className="filter-dropdown">
+            {enchantmentOptions.map(enchant => (
+              <option key={enchant} value={enchant}>{enchant}</option>
+            ))}
+          </select>
+        </div>
+        <button onClick={triggerApiFetch} disabled={loading} className="filter-dropdown search-btn search-btn-right">
+          {loading ? 'Loading...' : 'Search'}
+        </button>
       </div>
 
-      {/* Show itemDatabase result if found */}
-      {dbResult && (
-        <div className="db-result">
-          <strong>Key:</strong> {dbResult.key} <br />
-          <strong>Value:</strong> {dbResult.value}
-        </div>
-      )}
+      <div className="results-section">
+        {openCards.map(card => {
+          const selectedCities = cardCitySelections[card.id] || allCities;
+          return (
+            <MarketItemCard
+              key={card.id}
+              item={card.item}
+              marketData={card.marketData}
+              loading={loading}
+              selectedCities={selectedCities}
+              onCityToggle={cities => handleCityDropdownChange(card.id, cities)}
+              cityColors={cityColors}
+              onToggleOpen={() => {
+                setOpenCards(prev => prev.filter(c => c.id !== card.id));
+              }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
-};
+}
 
 export default MarketData;
