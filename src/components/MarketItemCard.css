@@ -105,34 +105,43 @@
   border: 1px solid #333;
   box-shadow: none;
   cursor: pointer;
+  position: relative;
 }
 
-.dropdown-list {
-  display: none;
+.city-dropdown-arrow::after {
+  content: '';
   position: absolute;
-  background: #23283a;
-  z-index: 10;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #0008;
-  padding: 8px;
-  min-width: 180px;
-  left: 0;
-  top: 100%;
+  right: 10px;
+  top: 50%;
+  width: 0.7em;
+  height: 0.4em;
+  pointer-events: none;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid #aaa;
+  transform: translateY(-50%);
 }
 
-.dropdown-list.dropdown-list-open {
-  display: block;
-}
-
-.city-checkbox-item {
-  display: block;
-  margin-bottom: 4px;
-  font-size: 0.95em;
-  font-weight: 500;
-}
-
-.city-legend-label {
-  margin-left: 6px;
+.city-dropdown-btn {
+  min-width: 60px;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  height: 28px;
+  border-radius: 4px;
+  margin: 0 2px;
+  background: #23232b;
+  color: #fff;
+  border: 1px solid #333;
+  box-shadow: none;
+  cursor: pointer;
+  position: relative;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 2l4 4 4-4' stroke='%23aaa' stroke-width='2' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px 12px;
+  padding-right: 28px;
 }
 
 /* Color for city label is set inline via style={{ color: cityColors[city] }} */
