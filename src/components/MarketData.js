@@ -210,13 +210,26 @@ const MarketData = () => {
       return;
     }
     const normTerm = normalize(term);
-    const matches = [];
+    const forbidden = ["Beginner's", "Novice's", "Journeyman's", "Adept's", "Expert's", "Master's", "Grandmaster's", "Elder's"];
+    let foundDisplay = new Set();
+    let suggestions = [];
     for (const key of Object.keys(itemDatabase)) {
       if (normalize(key).includes(normTerm)) {
-        matches.push({ key });
+        let display = key;
+        for (const word of forbidden) {
+          if (display.startsWith(word + ' ')) {
+            display = display.slice(word.length + 1);
+            break;
+          }
+        }
+        if (!foundDisplay.has(display)) {
+          suggestions.push({ key, display });
+          foundDisplay.add(display);
+        }
+        if (suggestions.length >= 1) break;
       }
     }
-    setSuggestions(matches.slice(0, 20)); // Show up to 20 results, all matching keys
+    setSuggestions(suggestions);
     // Do not setDbResult here; only set on click/enter
   };
 
@@ -430,7 +443,7 @@ const MarketData = () => {
                     setSelectedEnchantment('Select');
                   }}
                 >
-                  {suggestion.key}
+                  {suggestion.display || suggestion.key}
                 </div>
               ))}
             </div>

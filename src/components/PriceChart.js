@@ -34,7 +34,7 @@ const CITY_COLORS = {
   Martlock: '#1E90FF', // Ocean Blue
   Thetford: '#8F43B7', // Violet purple
   'Fort Sterling': '#FFFFFF', // White
-  'Black Market': '#222222', // Black
+  'Black Market': '#676767', // Black
 };
 // Fallback colors for any other cities
 const COLORS = [
