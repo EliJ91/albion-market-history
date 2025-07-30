@@ -22,7 +22,15 @@ function getCityColors(cityList) {
 const MarketData = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [openCards, setOpenCards] = useState([]); // [{ item, marketData, loading }]
+  // [{ id, item, marketData, selectedQuality, chartValue }]
+  const [openCards, setOpenCards] = useState(() => {
+    try {
+      const saved = localStorage.getItem('openCards');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(false);
   
   // Filter states
@@ -127,6 +135,8 @@ const MarketData = () => {
               id: Date.now() + Math.random(),
               item: { key: dbResult.key, value: itemId, LocalizedNames: itemDatabase[dbResult.key]?.LocalizedNames, UniqueName: dbResult.key },
               marketData: data,
+              selectedQuality: 1,
+              chartValue: 'avg_price',
             },
             ...filtered
           ];
@@ -283,9 +293,24 @@ const MarketData = () => {
             id: Date.now() + Math.random(),
             item: { key, value: itemId, LocalizedNames: itemDatabase[key]?.LocalizedNames, UniqueName: key },
             marketData: data,
+            selectedQuality: 1,
+            chartValue: 'avg_price',
           }
         ];
       });
+  // Handler to change quality for a card
+  const handleCardQualityChange = (cardId, newQuality) => {
+    setOpenCards(prev => prev.map(card =>
+      card.id === cardId ? { ...card, selectedQuality: newQuality } : card
+    ));
+  };
+
+  // Handler to change chart value for a card
+  const handleCardChartValueChange = (cardId, newValue) => {
+    setOpenCards(prev => prev.map(card =>
+      card.id === cardId ? { ...card, chartValue: newValue } : card
+    ));
+  };
       setMarketData({ success: true, data });
     } catch (error) {
       setMarketData({ success: false, error: error.message });
@@ -381,7 +406,22 @@ const MarketData = () => {
   }, [selectedTier, selectedEnchantment]);
 
   // Add city selection state per card
-  const [cardCitySelections, setCardCitySelections] = useState({}); // { [cardId]: [selectedCities] }
+  const [cardCitySelections, setCardCitySelections] = useState(() => {
+    try {
+      const saved = localStorage.getItem('cardCitySelections');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  // Persist openCards and cardCitySelections to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('openCards', JSON.stringify(openCards));
+  }, [openCards]);
+
+  useEffect(() => {
+    localStorage.setItem('cardCitySelections', JSON.stringify(cardCitySelections));
+  }, [cardCitySelections]);
 
   // Helper to get all cities (always show all, even if no data)
   const allCities = Object.keys(CITIES);
@@ -482,6 +522,10 @@ const MarketData = () => {
               selectedCities={selectedCities}
               onCityToggle={cities => handleCityDropdownChange(card.id, cities)}
               cityColors={cityColors}
+              selectedQuality={card.selectedQuality || 1}
+              onQualityChange={q => handleCardQualityChange(card.id, q)}
+              chartValue={card.chartValue || 'avg_price'}
+              onChartValueChange={v => handleCardChartValueChange(card.id, v)}
               onToggleOpen={() => {
                 setOpenCards(prev => prev.filter(c => c.id !== card.id));
               }}
@@ -491,6 +535,20 @@ const MarketData = () => {
       </div>
     </div>
   );
+
+  // Handler to change quality for a card
+  function handleCardQualityChange(cardId, newQuality) {
+    setOpenCards(prev => prev.map(card =>
+      card.id === cardId ? { ...card, selectedQuality: newQuality } : card
+    ));
+  }
+
+  // Handler to change chart value for a card
+  function handleCardChartValueChange(cardId, newValue) {
+    setOpenCards(prev => prev.map(card =>
+      card.id === cardId ? { ...card, chartValue: newValue } : card
+    ));
+  }
 }
 
 export default MarketData;

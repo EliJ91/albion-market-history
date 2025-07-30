@@ -12,13 +12,22 @@ const CITY_COLORS = {
   'Black Market': '#222222', // Black
 };
 
-const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onCityToggle, onToggleOpen }) => {
+
+const MarketItemCard = ({
+  item,
+  marketData,
+  cityColors,
+  selectedCities = [],
+  selectedQuality = 1,
+  onQualityChange,
+  chartValue = 'avg_price',
+  onChartValueChange,
+  onCityToggle,
+  onToggleOpen
+}) => {
   const safeSelectedCities = Array.isArray(selectedCities) ? selectedCities : [];
-  const [selectedQuality, setSelectedQuality] = useState(1);
   const cityDropdownRef = useRef(null);
   const cityButtonRef = useRef(null);
-  // Chart value toggle: 'avg_price' or 'quantity'
-  const [chartValue, setChartValue] = useState('avg_price');
 
   // Extract enchantment from item.value (after @, or 0 if not present)
   const enchantment = (() => {
@@ -33,6 +42,7 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
       .filter(entry => entry.quality === selectedQuality && entry.data && entry.data.length > 0)
       .map(entry => entry.location)
   );
+
 
   // Remove cities with no data from selection if present
   useEffect(() => {
@@ -87,7 +97,7 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
           <select
             id="quality-select"
             value={selectedQuality}
-            onChange={e => setSelectedQuality(Number(e.target.value))}
+            onChange={e => onQualityChange(Number(e.target.value))}
             className="filter-dropdown"
           >
             <option value={1}>Normal</option>
@@ -161,7 +171,7 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
               id="chart-value-toggle"
               type="checkbox"
               checked={chartValue === 'quantity'}
-              onChange={() => setChartValue(v => v === 'avg_price' ? 'quantity' : 'avg_price')}
+              onChange={() => onChartValueChange(chartValue === 'avg_price' ? 'quantity' : 'avg_price')}
             />
             <span className="slider" />
           </label>
@@ -172,7 +182,7 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
           allData={marketData}
           selectedTimeRange={'4w'}
           selectedQuality={selectedQuality}
-          onQualityChange={setSelectedQuality}
+          onQualityChange={onQualityChange}
           item={item}
           selectedCities={safeSelectedCities}
           cityColors={cityColors}
