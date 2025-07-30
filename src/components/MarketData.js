@@ -220,23 +220,14 @@ const MarketData = () => {
       return;
     }
     const normTerm = normalize(term);
-    const forbidden = ["Beginner's", "Novice's", "Journeyman's", "Adept's", "Expert's", "Master's", "Grandmaster's", "Elder's"];
     let foundDisplay = new Set();
     let suggestions = [];
     for (const key of Object.keys(itemDatabase)) {
       if (normalize(key).includes(normTerm)) {
-        let display = key;
-        for (const word of forbidden) {
-          if (display.startsWith(word + ' ')) {
-            display = display.slice(word.length + 1);
-            break;
-          }
+        if (!foundDisplay.has(key)) {
+          suggestions.push({ key, display: key });
+          foundDisplay.add(key);
         }
-        if (!foundDisplay.has(display)) {
-          suggestions.push({ key, display });
-          foundDisplay.add(display);
-        }
-        if (suggestions.length >= 1) break;
       }
     }
     setSuggestions(suggestions);
