@@ -91,8 +91,8 @@ const MarketItemCard = ({
         <button className="close-btn" onClick={onToggleOpen} title="Remove card">×</button>
       </div>
       {/* Controls row */}
-      <div className="market-item-controls-row">
-        <div className="market-item-quality-selector">
+      <div className="market-item-controls-flex-row">
+        <div className="market-item-control-group">
           <label className="input-label" htmlFor="quality-select">Quality:</label>
           <select
             id="quality-select"
@@ -107,7 +107,7 @@ const MarketItemCard = ({
             <option value={5}>Masterpiece</option>
           </select>
         </div>
-        <div className="market-item-city-selector">
+        <div className="market-item-control-group">
           <label className="input-label" htmlFor="city-select">Cities:</label>
           <div className="dropdown-multicheckbox">
             <button
@@ -119,7 +119,7 @@ const MarketItemCard = ({
                 dropdown.classList.toggle('dropdown-list-open');
               }}
             >
-              Select Cities 
+              Select Cities
             </button>
             <div className="dropdown-list" ref={cityDropdownRef}>
               {Object.keys(cityColors).map(city => {
@@ -163,18 +163,32 @@ const MarketItemCard = ({
             </div>
           </div>
         </div>
-        {/* Toggle button for chart value */}
-        <div className="chart-toggle-group">
-          <label className="input-label" htmlFor="chart-value-toggle">$ : #</label>
-          <label className="toggle-switch">
-            <input
-              id="chart-value-toggle"
-              type="checkbox"
-              checked={chartValue === 'quantity'}
-              onChange={() => onChartValueChange(chartValue === 'avg_price' ? 'quantity' : 'avg_price')}
-            />
-            <span className="slider" />
-          </label>
+        <div className="market-item-control-group">
+          <label className="input-label" htmlFor="chart-value-toggle">Display:</label>
+          <div className="button-toggle-group">
+            <button
+              type="button"
+              className={chartValue === 'avg_price' ? 'toggle-btn active' : 'toggle-btn'}
+              onClick={() => onChartValueChange('avg_price')}
+            >
+              $
+            </button>
+            <button
+              type="button"
+              className={chartValue === 'quantity' ? 'toggle-btn active' : 'toggle-btn'}
+              onClick={() => onChartValueChange('quantity')}
+            >
+              #
+            </button>
+          </div>
+        </div>
+        <div className="market-item-control-group">
+          <label className="input-label" htmlFor="use-avg-checkbox">Use Avg:</label>
+          <input
+            id="use-avg-checkbox"
+            type="checkbox"
+            // You can add a prop and handler for this as needed
+          />
         </div>
       </div>
       <div className="market-item-main-col">
