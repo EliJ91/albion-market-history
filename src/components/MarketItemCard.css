@@ -487,3 +487,16 @@
   margin-right: 2px;
   vertical-align: middle;
 }
+
+/* Roman numeral prefix for tier */
+.roman-tier-prefix {
+  font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif;
+  font-stretch: ultra-condensed;
+  /* Remove any font-size or letter-spacing overrides */
+  /* font-size: inherit; */
+  /* letter-spacing: normal; */
+  margin-right: 1em;
+  margin-left: 1em;
+  vertical-align: baseline;
+  display: inline-block;
+}

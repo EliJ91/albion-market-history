@@ -70,7 +70,7 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
   allData.forEach(entry => {
     if (
       (!selectedCities || selectedCities.includes(entry.location)) &&
-      entry.quality === filteredQuality
+      (entry.quality === filteredQuality || entry.quality === 0) // Show averaged data if present
     ) {
       datasets.push({
         label: entry.location,
