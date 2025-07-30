@@ -1,3 +1,64 @@
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  min-width: 90px;
+  margin-left: 4px;
+}
+.toggle-switch input[type="checkbox"] {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 28px;
+  background: #23232b;
+  border: 1.5px solid #333;
+  border-radius: 16px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 22px;
+  width: 22px;
+  left: 3px;
+  top: 2.5px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px #0002;
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .slider:before {
+  transform: translateX(28px);
+}
+.toggle-label {
+  font-size: 0.92em;
+  color: #aaa;
+  z-index: 1;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 56px;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.toggle-label.left {
+  left: -62px;
+  color: #fff;
+}
+.toggle-label.right {
+  left: 62px;
+  color: #fff;
+}
 .market-item-card {
   background: #23293a;
   border-radius: 22px;
@@ -64,13 +125,28 @@
 }
 
 .market-item-title {
-  font-size: 1.3rem;
+  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
   font-weight: 700;
   color: #fff;
   margin: 0;
   padding: 0;
   flex: 1 1 auto;
   min-width: 0;
+  align-self: flex-start;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.1;
+  max-width: 95%;
+  transition: font-size 0.2s;
+}
+
+@media (max-width: 700px) {
+  .market-item-title {
+    font-size: 0.95rem;
+    max-width: 100%;
+  }
 }
 
 .results-section {
@@ -90,8 +166,12 @@
 
 .dropdown-multicheckbox {
   position: relative;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
 }
+
 
 .city-dropdown-btn {
   min-width: 60px;
@@ -99,26 +179,37 @@
   padding: 2px 6px;
   height: 28px;
   border-radius: 4px;
-  margin: 0 2px;
+  margin: 0 2px 0 0;
   background: #23232b;
-  color: #fff;
-  border: 1px solid #333;
-  box-shadow: none;
-  cursor: pointer;
-  position: relative;
 }
 
-.city-dropdown-arrow::after {
-  content: '';
+.dropdown-list {
+  display: none;
   position: absolute;
-  right: 10px;
-  top: 50%;
-  width: 0.7em;
-  height: 0.4em;
-  pointer-events: none;
+  background: #23283a;
+  z-index: 100;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #0008;
+  padding: 8px;
+  min-width: 180px;
+  left: 0;
+  top: 36px;
+}
+
+  
+.dropdown-list-open {
+  display: block !important;
+}
+
+/* Dropdown arrow, if needed */
+.dropdown-arrow {
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
   border-top: 5px solid #aaa;
+  content: '';
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: middle;
   transform: translateY(-50%);
 }
 
@@ -158,6 +249,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .input-label {
@@ -253,11 +346,47 @@
 }
 
 .market-item-header-row {
+  display: none;
+}
+
+.market-item-title-row {
   display: flex;
   flex-direction: row;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   width: 100%;
   gap: 2rem;
   margin-bottom: 0.5rem;
+}
+
+.market-item-controls-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: .5rem;
+  margin-bottom: 0.5rem;
+}
+
+.market-item-quality-selector,
+.market-item-city-selector,
+.chart-toggle-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.market-item-quality-selector label,
+.market-item-city-selector label,
+.chart-toggle-group label {
+  
+  margin-bottom: 0;
+  text-align: right;  
+}
+
+.chart-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: 1.2rem;
 }

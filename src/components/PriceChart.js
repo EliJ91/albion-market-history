@@ -50,7 +50,7 @@ const COLORS = [
 
 const QUALITIES = [1, 2, 3, 4, 5];
 
-const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChange, item, selectedCities }) => {
+const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChange, item, selectedCities, chartValue = 'avg_price' }) => {
   // Time range dropdown options
   const TIME_RANGE_OPTIONS = [
     { label: '1 Week', value: '1w', days: 7 },
@@ -76,8 +76,9 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
         label: entry.location,
         data: entry.data.map(d => ({
           x: d.timestamp,
-          y: d.avg_price,
-          item_count: d.item_count
+          y: chartValue === 'avg_price' ? d.avg_price : d.item_count,
+          item_count: d.item_count,
+          avg_price: d.avg_price
         })),
         fill: false,
         borderColor: CITY_COLORS[entry.location] || COLORS[datasets.length % COLORS.length],
@@ -114,7 +115,9 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
             const d = new Date(context.raw.x);
             const mm = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
-            return `${mm}/${dd}  Qty: ${context.raw.item_count}  Price: ${context.raw.y.toLocaleString()}`;
+            return chartValue === 'avg_price'
+              ? `${mm}/${dd}  Qty: ${context.raw.item_count}  Price: ${context.raw.y.toLocaleString()}`
+              : `${mm}/${dd}  Qty: ${context.raw.y.toLocaleString()}  Price: ${context.raw.avg_price?.toLocaleString?.() ?? ''}`;
           },
         },
       },

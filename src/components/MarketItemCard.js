@@ -17,6 +17,8 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
   const [selectedQuality, setSelectedQuality] = useState(1);
   const cityDropdownRef = useRef(null);
   const cityButtonRef = useRef(null);
+  // Chart value toggle: 'avg_price' or 'quantity'
+  const [chartValue, setChartValue] = useState('avg_price');
 
   // Extract enchantment from item.value (after @, or 0 if not present)
   const enchantment = (() => {
@@ -68,86 +70,101 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
 
   return (
     <div className="market-item-card">
-      <div className="market-item-header-row">
+      {/* Item name row */}
+      <div className="market-item-title-row">
         <h3 className="market-item-title">
           {item?.LocalizedNames?.['EN-US'] || item?.UniqueName || item?.key}
           {enchantment > 0 && (
             <span className={`enchant-label enchant-${enchantment}`}>{`. ${enchantment}`}</span>
           )}
         </h3>
-        <div className="market-item-controls-row">
-          <div className="market-item-quality-selector">
-            <label className="input-label" htmlFor="quality-select">Quality:</label>
-            <select
-              id="quality-select"
-              value={selectedQuality}
-              onChange={e => setSelectedQuality(Number(e.target.value))}
-              className="filter-dropdown"
+        <button className="close-btn" onClick={onToggleOpen} title="Remove card">×</button>
+      </div>
+      {/* Controls row */}
+      <div className="market-item-controls-row">
+        <div className="market-item-quality-selector">
+          <label className="input-label" htmlFor="quality-select">Quality:</label>
+          <select
+            id="quality-select"
+            value={selectedQuality}
+            onChange={e => setSelectedQuality(Number(e.target.value))}
+            className="filter-dropdown"
+          >
+            <option value={1}>Normal</option>
+            <option value={2}>Good</option>
+            <option value={3}>Outstanding</option>
+            <option value={4}>Excellent</option>
+            <option value={5}>Masterpiece</option>
+          </select>
+        </div>
+        <div className="market-item-city-selector">
+          <label className="input-label" htmlFor="city-select">Cities:</label>
+          <div className="dropdown-multicheckbox">
+            <button
+              type="button"
+              className="filter-dropdown city-dropdown-btn"
+              ref={cityButtonRef}
+              onClick={e => {
+                const dropdown = cityDropdownRef.current;
+                dropdown.classList.toggle('dropdown-list-open');
+              }}
             >
-              <option value={1}>Normal</option>
-              <option value={2}>Good</option>
-              <option value={3}>Outstanding</option>
-              <option value={4}>Excellent</option>
-              <option value={5}>Masterpiece</option>
-            </select>
-          </div>
-          <div className="market-item-city-selector">
-            <label className="input-label" htmlFor="city-select">Cities:</label>
-            <div className="dropdown-multicheckbox">
-              <button
-                type="button"
-                className="filter-dropdown city-dropdown-btn"
-                ref={cityButtonRef}
-                onClick={e => {
-                  const dropdown = cityDropdownRef.current;
-                  dropdown.classList.toggle('dropdown-list-open');
-                }}
-              >
-                Cities
-              </button>
-              <div className="dropdown-list" ref={cityDropdownRef}>
-                {Object.keys(cityColors).map(city => {
-                  const hasData = citiesWithData.has(city);
-                  // Map city name to CSS class
-                  const cityClass =
-                    city === 'Caerleon' ? 'city-caerleon' :
-                    city === 'Bridgewatch' ? 'city-bridgewatch' :
-                    city === 'Lymhurst' ? 'city-lymhurst' :
-                    city === 'Martlock' ? 'city-martlock' :
-                    city === 'Thetford' ? 'city-thetford' :
-                    city === 'Fort Sterling' ? 'city-fortsterling' :
-                    city === 'Black Market' ? 'city-blackmarket' :
-                    '';
-                  const disabledClass = hasData ? '' : 'city-disabled';
-                  return (
-                    <label key={city} className={`city-checkbox-item`}>
-                      <input
-                        type="checkbox"
-                        checked={safeSelectedCities.includes(city) && hasData}
-                        disabled={!hasData}
-                        onChange={e => {
-                          if (!hasData) return;
-                          let newSelection;
-                          if (e.target.checked) {
-                            newSelection = [...safeSelectedCities, city].filter((v, i, a) => a.indexOf(v) === i);
-                          } else {
-                            newSelection = safeSelectedCities.filter(c => c !== city);
-                          }
-                          if (newSelection.length === 0) {
-                            newSelection = Object.keys(cityColors).filter(c => citiesWithData.has(c));
-                          }
-                          onCityToggle(newSelection);
-                        }}
-                        className={`city-legend-checkbox ${cityClass} ${disabledClass}`}
-                      />
-                      <span className={`city-legend-label ${cityClass} ${disabledClass}`} style={{ fontWeight: 600 }}>{city}</span>
-                    </label>
-                  );
-                })}
-              </div>
+              Select Cities 
+            </button>
+            <div className="dropdown-list" ref={cityDropdownRef}>
+              {Object.keys(cityColors).map(city => {
+                const hasData = citiesWithData.has(city);
+                // Map city name to CSS class
+                const cityClass =
+                  city === 'Caerleon' ? 'city-caerleon' :
+                  city === 'Bridgewatch' ? 'city-bridgewatch' :
+                  city === 'Lymhurst' ? 'city-lymhurst' :
+                  city === 'Martlock' ? 'city-martlock' :
+                  city === 'Thetford' ? 'city-thetford' :
+                  city === 'Fort Sterling' ? 'city-fortsterling' :
+                  city === 'Black Market' ? 'city-blackmarket' :
+                  '';
+                const disabledClass = hasData ? '' : 'city-disabled';
+                return (
+                  <label key={city} className={`city-checkbox-item`}>
+                    <input
+                      type="checkbox"
+                      checked={safeSelectedCities.includes(city) && hasData}
+                      disabled={!hasData}
+                      onChange={e => {
+                        if (!hasData) return;
+                        let newSelection;
+                        if (e.target.checked) {
+                          newSelection = [...safeSelectedCities, city].filter((v, i, a) => a.indexOf(v) === i);
+                        } else {
+                          newSelection = safeSelectedCities.filter(c => c !== city);
+                        }
+                        if (newSelection.length === 0) {
+                          newSelection = Object.keys(cityColors).filter(c => citiesWithData.has(c));
+                        }
+                        onCityToggle(newSelection);
+                      }}
+                      className={`city-legend-checkbox ${cityClass} ${disabledClass}`}
+                    />
+                    <span className={`city-legend-label ${cityClass} ${disabledClass}`} style={{ fontWeight: 600 }}>{city}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
-          <button className="close-btn" onClick={onToggleOpen} title="Remove card">×</button>
+        </div>
+        {/* Toggle button for chart value */}
+        <div className="chart-toggle-group">
+          <label className="input-label" htmlFor="chart-value-toggle">$ : #</label>
+          <label className="toggle-switch">
+            <input
+              id="chart-value-toggle"
+              type="checkbox"
+              checked={chartValue === 'quantity'}
+              onChange={() => setChartValue(v => v === 'avg_price' ? 'quantity' : 'avg_price')}
+            />
+            <span className="slider" />
+          </label>
         </div>
       </div>
       <div className="market-item-main-col">
@@ -159,6 +176,7 @@ const MarketItemCard = ({ item, marketData, cityColors, selectedCities = [], onC
           item={item}
           selectedCities={safeSelectedCities}
           cityColors={cityColors}
+          chartValue={chartValue}
         />
       </div>
     </div>
