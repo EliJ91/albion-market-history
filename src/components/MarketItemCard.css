@@ -125,7 +125,7 @@
 }
 
 .market-item-title {
-  font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+  font-size: 1rem;
   font-weight: 700;
   color: #fff;
   margin: 0;
@@ -298,10 +298,11 @@
 .city-legend-checkbox.city-disabled { accent-color: #888; }
 
 .enchant-label {
-  margin-left: 0.4em;
-  font-size: 1.1em;
+  margin-left: 1em;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  vertical-align: baseline;
   text-shadow: 0 0 6px rgba(0,255,128,0.7), 0 0 2px #000;
 }
 .enchant-1 {
@@ -502,4 +503,37 @@
   margin-left: 1em;
   vertical-align: baseline;
   display: inline-block;
+  font-size: 1.5rem;
+}
+
+/* Roman numeral tier colors */
+.roman-tier-1 {
+  color: #444; /* dark gray */
+}
+.roman-tier-2 {
+  color: #888; /* lighter than dark gray */
+}
+.roman-tier-3 {
+  color: #39ff14; /* leaf green */
+  text-shadow: 0 0 8px #39ff14, 0 0 2px #000;
+}
+.roman-tier-4 {
+  color: #1e90ff; /* slightly darker sky blue */
+  text-shadow: 0 0 8px #1e90ff, 0 0 2px #000;
+}
+.roman-tier-5 {
+  color: #d7263d; /* crimson red */
+  text-shadow: 0 0 8px #d7263d, 0 0 2px #000;
+}
+.roman-tier-6 {
+  color: #ffb347; /* desert orange */
+  text-shadow: 0 0 8px #ffb347, 0 0 2px #000;
+}
+.roman-tier-7 {
+  color: #ffe135; /* bumble bee yellow */
+  text-shadow: 0 0 8px #ffe135, 0 0 2px #000;
+}
+.roman-tier-8 {
+  color: #f8f8ff; /* off white */
+  text-shadow: 0 0 8px #f8f8ff, 0 0 2px #000;
 }

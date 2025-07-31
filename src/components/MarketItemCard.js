@@ -183,10 +183,23 @@ const MarketItemCard = ({
 
   // Helper to get Roman numeral prefix for item name
   function getRomanPrefix(name) {
-    if (!name) return '';
+    if (!name) return { numeral: '', tier: 0 };
     const match = name.match(/^(Beginner's|Novice's|Journeyman's|Adept's|Expert's|Master's|Grandmaster's|Elder's)/);
-    if (match) return TIER_ROMAN[match[1]] + ' ';
-    return '';
+    if (match) {
+      const roman = TIER_ROMAN[match[1]];
+      const tierMap = {
+        "Beginner's": 1,
+        "Novice's": 2,
+        "Journeyman's": 3,
+        "Adept's": 4,
+        "Expert's": 5,
+        "Master's": 6,
+        "Grandmaster's": 7,
+        "Elder's": 8
+      };
+      return { numeral: roman + ' ', tier: tierMap[match[1]] };
+    }
+    return { numeral: '', tier: 0 };
   }
 
   return (
@@ -194,7 +207,12 @@ const MarketItemCard = ({
       {/* Item name row */}
       <div className="market-item-title-row">
         <h3 className="market-item-title">
-          <span className="roman-tier-prefix">{getRomanPrefix(item?.LocalizedNames?.['EN-US'] || item?.UniqueName || item?.key)}</span>
+          {(() => {
+            const { numeral, tier } = getRomanPrefix(item?.LocalizedNames?.['EN-US'] || item?.UniqueName || item?.key);
+            return numeral ? (
+              <span className={`roman-tier-prefix roman-tier-${tier}`}>{numeral}</span>
+            ) : null;
+          })()}
           {item?.LocalizedNames?.['EN-US'] || item?.UniqueName || item?.key}
           {enchantment > 0 && (
             <span className={`enchant-label enchant-${enchantment}`}>{`. ${enchantment}`}</span>
