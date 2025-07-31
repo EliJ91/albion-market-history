@@ -136,7 +136,6 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
             }
             if (found) {
               // eslint-disable-next-line no-console
-              console.log('Hovered date:', hoveredDate, 'City:', city, 'Sum of prices:', sumPrice);
             }
             return chartValue === 'avg_price'
               ? `${mm}/${dd}  Qty: ${context.raw.item_count}  Price: ${context.raw.y.toLocaleString()}`
