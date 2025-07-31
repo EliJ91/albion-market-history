@@ -141,7 +141,7 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
         },
         grid: { display: true, color: '#444', lineWidth: 1 }, // Lighten grid lines
         ticks: {
-          display: true,
+          display: false,
           color: '#aaa',
           font: { size: 11 }
         },

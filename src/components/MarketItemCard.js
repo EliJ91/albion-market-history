@@ -51,15 +51,18 @@ const MarketItemCard = ({
   // Combine all qualities for each city and timestamp if useAvg is true
   function getCombinedMarketData() {
     if (!useAvg || !marketData) return marketData;
-    // Group by city, then by timestamp (date only)
+    // Group by city, then by local date (YYYY-MM-DD)
     const grouped = {};
     for (const entry of marketData) {
       const city = entry.location;
       if (!grouped[city]) grouped[city] = {};
       for (const point of entry.data) {
-        // Use only the date part for grouping (YYYY-MM-DD)
         const date = new Date(point.timestamp);
-        const dateKey = date.toISOString().slice(0, 10);
+        // Use UTC date parts to match the data's intended date
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        const dateKey = `${year}-${month}-${day}`;
         if (!grouped[city][dateKey]) grouped[city][dateKey] = { sumPrice: 0, sumQty: 0, count: 0 };
         grouped[city][dateKey].sumPrice += point.avg_price;
         grouped[city][dateKey].sumQty += point.item_count;
@@ -71,7 +74,7 @@ const MarketItemCard = ({
       const sortedData = Object.entries(tsMap)
         .map(([date, { sumPrice, sumQty, count }]) => ({
           timestamp: date, // Use date string as timestamp
-          avg_price: count > 0 ? Math.ceil(sumPrice / count) : 0, // Round up to nearest whole number
+          avg_price: count > 0 ? Math.ceil(sumPrice / count) : 0,
           item_count: sumQty
         }))
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -84,22 +87,34 @@ const MarketItemCard = ({
   }
   const processedMarketData = getCombinedMarketData();
 
-  // Determine which cities have data for the selected quality
+  // Determine which cities have data for the selected quality or any quality if useAvg is enabled
   const citiesWithData = new Set(
     (marketData || [])
-      .filter(entry => entry.quality === selectedQuality && entry.data && entry.data.length > 0)
+      .filter(entry =>
+        useAvg
+          ? (entry.data && entry.data.length > 0)
+          : (entry.quality === selectedQuality && entry.data && entry.data.length > 0)
+      )
       .map(entry => entry.location)
   );
 
 
   // Remove cities with no data from selection if present
   useEffect(() => {
-    const filtered = safeSelectedCities.filter(city => citiesWithData.has(city));
-    if (filtered.length !== safeSelectedCities.length) {
-      onCityToggle(filtered);
+    // When useAvg is on, select all cities with any data
+    if (useAvg) {
+      const allWithData = Object.keys(cityColors).filter(city => citiesWithData.has(city));
+      if (allWithData.length !== safeSelectedCities.length || !allWithData.every(c => safeSelectedCities.includes(c))) {
+        onCityToggle(allWithData);
+      }
+    } else {
+      const filtered = safeSelectedCities.filter(city => citiesWithData.has(city));
+      if (filtered.length !== safeSelectedCities.length) {
+        onCityToggle(filtered);
+      }
     }
     // eslint-disable-next-line
-  }, [selectedQuality, marketData]);
+  }, [selectedQuality, marketData, useAvg]);
 
   // Reset cities to all when quality changes
   useEffect(() => {
