@@ -51,32 +51,48 @@ const MarketItemCard = ({
   // Combine all qualities for each city and timestamp if useAvg is true
   function getCombinedMarketData() {
     if (!useAvg || !marketData) return marketData;
-    // Group by city, then by local date (YYYY-MM-DD)
+    // Group by city, then by UTC date (YYYY-MM-DD)
     const grouped = {};
     for (const entry of marketData) {
       const city = entry.location;
       if (!grouped[city]) grouped[city] = {};
       for (const point of entry.data) {
+        // Always group by the UTC date of the timestamp
         const date = new Date(point.timestamp);
-        // Use UTC date parts to match the data's intended date
         const year = date.getUTCFullYear();
         const month = String(date.getUTCMonth() + 1).padStart(2, '0');
         const day = String(date.getUTCDate()).padStart(2, '0');
-        const dateKey = `${year}-${month}-${day}`;
-        if (!grouped[city][dateKey]) grouped[city][dateKey] = { sumPrice: 0, sumQty: 0, count: 0 };
-        grouped[city][dateKey].sumPrice += point.avg_price;
-        grouped[city][dateKey].sumQty += point.item_count;
-        grouped[city][dateKey].count += 1;
+        const utcDateKey = `${year}-${month}-${day}`;
+        if (!grouped[city][utcDateKey]) grouped[city][utcDateKey] = [];
+        grouped[city][utcDateKey].push(point);
       }
     }
     // Convert back to array format expected by PriceChart, sorted by date
     return Object.entries(grouped).map(([city, tsMap]) => {
       const sortedData = Object.entries(tsMap)
-        .map(([date, { sumPrice, sumQty, count }]) => ({
-          timestamp: date, // Use date string as timestamp
-          avg_price: count > 0 ? Math.ceil(sumPrice / count) : 0,
-          item_count: sumQty
-        }))
+        .map(([utcDateKey, points]) => {
+          if (points.length === 1) {
+            // Use the original point's timestamp for single data points
+            return {
+              timestamp: points[0].timestamp,
+              avg_price: points[0].avg_price,
+              item_count: points[0].item_count
+            };
+          } else {
+            // Calculate (sum of prices) / (number of entries) for the day
+            let sumPrice = 0;
+            points.forEach(p => {
+              sumPrice += p.avg_price;
+            });
+            const avgPrice = points.length > 0 ? Math.round(sumPrice / points.length) : 0;
+            const totalQty = points.reduce((acc, p) => acc + p.item_count, 0);
+            return {
+              timestamp: points[0].timestamp, // Use the first API data timestamp for the group
+              avg_price: avgPrice,
+              item_count: totalQty
+            };
+          }
+        })
         .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       return {
         location: city,

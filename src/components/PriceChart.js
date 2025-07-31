@@ -115,6 +115,29 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
             const d = new Date(context.raw.x);
             const mm = String(d.getMonth() + 1).padStart(2, '0');
             const dd = String(d.getDate()).padStart(2, '0');
+            // Find all points for this city and this UTC date
+            const city = context.dataset.label;
+            const hoveredDate = d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+            let sumPrice = 0;
+            let found = false;
+            if (Array.isArray(allData)) {
+              const cityData = allData.find(entry => entry.location === city);
+              if (cityData && Array.isArray(cityData.data)) {
+                const pointsForDay = cityData.data.filter(pt => {
+                  const ptDate = new Date(pt.timestamp);
+                  const ptDateStr = ptDate.getUTCFullYear() + '-' + String(ptDate.getUTCMonth() + 1).padStart(2, '0') + '-' + String(ptDate.getUTCDate()).padStart(2, '0');
+                  return ptDateStr === hoveredDate;
+                });
+                if (pointsForDay.length > 0) {
+                  found = true;
+                  sumPrice = pointsForDay.reduce((acc, pt) => acc + (pt.avg_price || 0), 0);
+                }
+              }
+            }
+            if (found) {
+              // eslint-disable-next-line no-console
+              console.log('Hovered date:', hoveredDate, 'City:', city, 'Sum of prices:', sumPrice);
+            }
             return chartValue === 'avg_price'
               ? `${mm}/${dd}  Qty: ${context.raw.item_count}  Price: ${context.raw.y.toLocaleString()}`
               : `${mm}/${dd}  Qty: ${context.raw.y.toLocaleString()}  Price: ${context.raw.avg_price?.toLocaleString?.() ?? ''}`;
@@ -126,6 +149,8 @@ const PriceChart = ({ allData, selectedTimeRange, selectedQuality, onQualityChan
       point: {
         radius: 2,
         hoverRadius: 4,
+        hitRadius: 12, // Make points easier to hover, but not visible
+        borderWidth: 0, // No border
       },
     },
     scales: {
