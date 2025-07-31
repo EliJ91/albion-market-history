@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/albion-market-history/static/css/main.601418b3.css",
-    "main.js": "/albion-market-history/static/js/main.27b1be87.js",
+    "main.js": "/albion-market-history/static/js/main.413ec439.js",
     "static/js/453.1daa8df5.chunk.js": "/albion-market-history/static/js/453.1daa8df5.chunk.js",
     "index.html": "/albion-market-history/index.html",
     "main.601418b3.css.map": "/albion-market-history/static/css/main.601418b3.css.map",
-    "main.27b1be87.js.map": "/albion-market-history/static/js/main.27b1be87.js.map",
+    "main.413ec439.js.map": "/albion-market-history/static/js/main.413ec439.js.map",
     "453.1daa8df5.chunk.js.map": "/albion-market-history/static/js/453.1daa8df5.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.601418b3.css",
-    "static/js/main.27b1be87.js"
+    "static/js/main.413ec439.js"
   ]
 }
