@@ -68,24 +68,31 @@ const MarketData = () => {
     'PLANKS', 'WOOD', 'METALBAR', 'ORE', 'ROCK', 'LEATHER', 'HIDE', 'CLOTH', 'FIBER'
   ];
   function isResource(val) {
-    return RESOURCE_TYPES.some(type => val.includes(type));
+    // Only match whole resource type words, not substrings
+    return RESOURCE_TYPES.some(type => new RegExp(`\\b${type}\\b`).test(val));
   }
   function buildItemValue(baseVal, enchant) {
-    if (isResource(baseVal)) {
+    // If not a resource, strip _LEVELN if present
+    let cleanBaseVal = baseVal;
+    if (!isResource(baseVal)) {
+      cleanBaseVal = baseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
+    }
+    console.log('buildItemValue:', { baseVal, cleanBaseVal, isResource: isResource(cleanBaseVal), enchant }); // Debug log
+    if (isResource(cleanBaseVal)) {
       if (enchant && enchant !== '0' && enchant !== 'Select') {
         // Remove _LEVELN and @N if present
-        const noLevel = baseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
+        const noLevel = cleanBaseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
         return `${noLevel}_LEVEL${enchant}@${enchant}`;
       } else {
         // Unenchanted resource
-        return baseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
+        return cleanBaseVal.replace(/_LEVEL\d+(@\d+)?$/, '');
       }
     } else {
       // Gear and other items
       if (enchant && enchant !== '0' && enchant !== 'Select') {
-        return `${baseVal.split('@')[0]}@${enchant}`;
+        return `${cleanBaseVal.split('@')[0]}@${enchant}`;
       } else {
-        return baseVal.split('@')[0];
+        return cleanBaseVal.split('@')[0];
       }
     }
   }
