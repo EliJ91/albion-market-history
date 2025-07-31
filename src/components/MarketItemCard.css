@@ -1,94 +1,23 @@
-@media (max-width: 700px) {
-  html, body, #root, .App, .main, .main-content {
-    width: 100vw !important;
-    min-width: 100vw !important;
-    max-width: 100vw !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-    overflow-x: hidden !important;
-  }
-}
-@media (max-width: 700px) {
-  .top-bar, .search-section, .search-container, .results-section {
-    width: 100vw !important;
-    min-width: 100vw !important;
-    max-width: 100vw !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box;
-  }
-  .search-section, .search-container {
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-}
-.toggle-switch {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  height: 28px;
-  min-width: 90px;
-  margin-left: 4px;
-.toggle-switch input[type="checkbox"] {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 56px;
-  height: 28px;
-  background: #23232b;
-  border: 1.5px solid #333;
-  border-radius: 16px;
-  transition: background 0.2s;
-  cursor: pointer;
-}
-.slider:before {
-  content: "";
-  position: absolute;
-  height: 22px;
-  width: 22px;
-  left: 3px;
-  top: 2.5px;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 1px 4px #0002;
-  transition: transform 0.2s;
-}
-.toggle-switch input:checked + .slider:before {
-  transform: translateX(28px);
-}
-.toggle-label {
-  font-size: 0.92em;
-  color: #aaa;
-  z-index: 1;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  width: 56px;
-  text-align: center;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-.toggle-label.left {
-  left: -62px;
-  color: #fff;
-}
-.toggle-label.right {
-  left: 62px;
-  color: #fff;
-}
+/* Styles for the MarketItemCard component
+ *
+ * This stylesheet contains only the rules that correspond to
+ * elements rendered by the MarketItemCard React component.  Any
+ * selectors that were not used in the component (such as
+ * ``toggle-switch`` or old layout classes) have been removed to
+ * reduce noise and avoid unintended side‑effects.  The remaining
+ * rules mirror the hierarchy of the JSX markup: there is a root
+ * ``.market-item-card`` container, followed by title, control and
+ * content sections.  Nested selectors are kept flat to keep the
+ * cascade easy to follow.
+ */
+
+/* Root card container */
 .market-item-card {
   background: #23293a;
   border-radius: 22px;
-  border: 1.5px solid rgba(255,255,255,0.08);
-  box-shadow: 0 8px 32px 0 rgba(0,0,0,0.32);
-  padding: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.32);
+  padding: 10px 10px;
   position: relative;
   width: 100%;
   min-width: 580px;
@@ -103,31 +32,8 @@
   overflow: visible;
 }
 
-/* Card content layout: chart and info/image side by side */
-.market-item-card-content {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  width: 100%;
-  gap: 24px;
-  margin-top: 8px;
-}
-
-/* Make sure PriceChart and image/info don't overlap */
-.market-item-card-content .price-chart-container {
-  flex: 2 1 0;
-  min-width: 0;
-}
-.market-item-card-content .price-chart-item-image-container {
-  flex: 1 1 0;
-  min-width: 120px;
-  max-width: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-  /* Removed .close-btn from mobile media query so desktop style always applies */
-
+/* Narrow screen adjustments */
+@media (max-width: 700px) {
   .market-item-card {
     width: 100vw;
     min-width: 0;
@@ -135,36 +41,85 @@
     padding: 8px 0 6px 0;
     margin: 6px 0;
     border-radius: 0;
-    /* All other styles (border, box-shadow, background, etc.) are inherited from the main .market-item-card rule above */
   }
 }
 
-@media (max-width: 700px) {
-  .market-item-title {
-    font-size: 0.95rem;
-    max-width: 100%;
-  }
-}
-
-.results-section {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
-  justify-items: center;
-  align-items: start;
+/* Title row: holds the item name and close button */
+.market-item-title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
   width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
 }
 
-.market-item-main-col {
+/* Item name styling */
+.market-item-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Button to close the card */
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #f56565;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Flex container for all control groups */
+.market-item-controls-flex-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
   width: 100%;
-  border: 2px solid #444;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px 0 rgba(0,0,0,0.25), 0 1.5px 4px 0 rgba(0,0,0,0.15);
-  background: #181a20;
+  margin-bottom: 10px;
 }
 
+/* Individual control grouping */
+.market-item-control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 120px;
+  max-width: 220px;
+  margin: 0 0.5rem;
+}
+
+/* Label for controls (quality, city selector, etc.) */
+.input-label {
+  font-size: 0.95em;
+  color: #aaa;
+  margin-bottom: 2px;
+  text-align: center;
+  width: 100%;
+}
+
+/* Shared dropdown appearance for selects and buttons */
+.filter-dropdown {
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  height: 28px;
+  border-radius: 4px;
+  margin: 0 2px;
+  background: #23232b;
+  color: #fff;
+  border: 1px solid #333;
+  box-shadow: none;
+  cursor: pointer;
+}
+
+/* Wrapper around the city selector */
 .dropdown-multicheckbox {
   position: relative;
   display: flex;
@@ -173,47 +128,7 @@
   width: 100%;
 }
 
-
-.city-dropdown-btn {
-  min-width: 60px;
-  font-size: 0.85rem;
-  padding: 2px 6px;
-  height: 28px;
-  border-radius: 4px;
-  margin: 0 2px 0 0;
-  background: #23232b;
-}
-
-.dropdown-list {
-  display: none;
-  position: absolute;
-  background: #23283a;
-  z-index: 100;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #0008;
-  padding: 8px;
-  min-width: 180px;
-  left: 0;
-  top: 36px;
-}
-
-  
-.dropdown-list-open {
-  display: block !important;
-}
-
-/* Dropdown arrow, if needed */
-.dropdown-arrow {
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid #aaa;
-  content: '';
-  display: inline-block;
-  margin-left: 6px;
-  vertical-align: middle;
-  transform: translateY(-50%);
-}
-
+/* Button used to open the city list */
 .city-dropdown-btn {
   min-width: 60px;
   font-size: 0.85rem;
@@ -226,56 +141,45 @@
   border: 1px solid #333;
   box-shadow: none;
   cursor: pointer;
-  position: relative;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 2l4 4 4-4' stroke='%23aaa' stroke-width='2' fill='none' fill-rule='evenodd'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-  background-size: 16px 12px;
-  padding-right: 28px;
 }
 
-/* Color for city label is set inline via style={{ color: cityColors[city] }} */
+/* List of cities shown when the dropdown is open */
+.dropdown-list {
+  display: none;
+  position: absolute;
+  background: #23283a;
+  z-index: 100;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  padding: 8px;
+  min-width: 180px;
+  left: 0;
+  top: 36px;
+}
 
-.market-item-controls-row {
+/* Toggle to display the dropdown */
+.dropdown-list-open {
+  display: block !important;
+}
+
+/* Each city row in the dropdown */
+.city-checkbox-item {
   display: flex;
-  flex-direction: row;
-  gap: 1.2rem;
-  align-items: flex-start;
-  margin-top: 0;
+  align-items: center;
+  margin-bottom: 4px;
 }
 
-.market-item-quality-selector, .market-item-city-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  align-items: flex-start;
-  width: 100%;
+/* Checkbox used in city selector */
+.city-legend-checkbox {
+  margin-right: 4px;
 }
 
-.input-label {
-  font-size: 0.95em;
-  color: #aaa;
-  margin-bottom: 2px;
-  text-align: center;
-  width: 100%;
+/* Label for the city name */
+.city-legend-label {
+  font-weight: 600;
 }
 
-.filter-dropdown {
-  min-width: 60px;
-  font-size: 0.85rem;
-  padding: 2px 6px;
-  height: 28px;
-  border-radius: 4px;
-  margin: 0 2px;
-  background: #23232b;
-  color: #fff;
-  border: 1px solid #333;
-  box-shadow: none;
-}
-
-/* City legend and dropdown color classes */
+/* City color classes; these map directly to Albion Online cities */
 .city-caerleon { color: #D7263D !important; }
 .city-bridgewatch { color: #FFD166 !important; }
 .city-lymhurst { color: #228B22 !important; }
@@ -285,6 +189,7 @@
 .city-blackmarket { color: #676767 !important; }
 .city-disabled { color: #888 !important; }
 
+/* Accent colours on the checkbox for each city */
 .city-legend-checkbox.city-caerleon { accent-color: #D7263D; }
 .city-legend-checkbox.city-bridgewatch { accent-color: #FFD166; }
 .city-legend-checkbox.city-lymhurst { accent-color: #228B22; }
@@ -294,14 +199,93 @@
 .city-legend-checkbox.city-blackmarket { accent-color: #222222; }
 .city-legend-checkbox.city-disabled { accent-color: #888; }
 
+/* Buttons used to toggle between price and quantity on the chart */
+.button-toggle-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.toggle-btn {
+  background: #23232b;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 4px 14px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggle-btn.active,
+.toggle-btn:active {
+  background: #3a3f4b;
+  color: #ffd166;
+  font-weight: bold;
+  border-color: #ffd166;
+}
+
+/* Styling for the Use Average checkbox */
+#use-avg-checkbox {
+  width: 22px;
+  height: 22px;
+  accent-color: #7b9fff;
+  border-radius: 4px;
+  margin-left: 6px;
+  margin-right: 2px;
+  vertical-align: middle;
+}
+
+/* Roman numeral prefix shown before the item name */
+.roman-tier-prefix {
+  font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif;
+  font-stretch: ultra-condensed;
+  margin-right: 1em;
+  margin-left: 1em;
+  vertical-align: baseline;
+  display: inline-block;
+  font-size: 1.5rem;
+}
+
+/* Colour coding for each tier */
+.roman-tier-1 { color: #444; }
+.roman-tier-2 { color: #888; }
+.roman-tier-3 {
+  color: #39ff14;
+  text-shadow: 0 0 8px #39ff14, 0 0 2px #000;
+}
+.roman-tier-4 {
+  color: #1e90ff;
+  text-shadow: 0 0 8px #1e90ff, 0 0 2px #000;
+}
+.roman-tier-5 {
+  color: #d7263d;
+  text-shadow: 0 0 8px #d7263d, 0 0 2px #000;
+}
+.roman-tier-6 {
+  color: #ffb347;
+  text-shadow: 0 0 8px #ffb347, 0 0 2px #000;
+}
+.roman-tier-7 {
+  color: #ffe135;
+  text-shadow: 0 0 8px #ffe135, 0 0 2px #000;
+}
+.roman-tier-8 {
+  color: #f8f8ff;
+  text-shadow: 0 0 8px #f8f8ff, 0 0 2px #000;
+}
+
+/* Enchantment indicator next to the item name */
 .enchant-label {
   margin-left: 1em;
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   vertical-align: baseline;
-  text-shadow: 0 0 6px rgba(0,255,128,0.7), 0 0 2px #000;
+  text-shadow: 0 0 6px rgba(0, 255, 128, 0.7), 0 0 2px #000;
 }
+
 .enchant-1 {
   color: #39ff14;
   text-shadow: 0 0 8px #39ff14, 0 0 2px #000;
@@ -319,271 +303,23 @@
   text-shadow: 0 0 10px #ffd700, 0 0 2px #000;
 }
 
+/* Container around the chart component */
+.market-item-main-col {
+  width: 100%;
+  border: 2px solid #444;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.25), 0 1.5px 4px 0 rgba(0, 0, 0, 0.15);
+  background: #181a20;
+}
+
+/* Tweaks for mobile layouts */
 @media (max-width: 700px) {
-  .results-section {
-    grid-template-columns: 1fr !important;
-    gap: 0.8rem;
-    width: 100vw !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    justify-items: stretch !important;
-    align-items: stretch !important;
-    box-sizing: border-box;
-  }
-  .market-item-card {
-    width: 100vw !important;
-    min-width: 0 !important;
-    max-width: 100vw !important;
-    padding: 0 !important;
-    margin: 0 0 10px 0 !important;
-    box-sizing: border-box;
-    border-radius: 0 !important;
-    /* All other styles inherited from desktop */
-  }
-  /* Remove global width/overflow rules, restrict to mobile only */
-  .market-item-card-content {
-    flex-direction: column;
-    gap: 6px;
-  }
-  .market-item-card-content .price-chart-container {
-    min-width: 0;
-    max-width: 100vw;
-    width: 100%;
-    padding: 0;
-  }
-  .market-item-card-content .price-chart-item-image-container {
-    min-width: 80px;
-    max-width: 120px;
-    width: 100%;
-    padding: 0;
-  }
-  .market-item-title {
-    font-size: 0.92rem;
-    max-width: 100%;
-  }
-  .price-chart-container canvas {
-    max-height: 180px !important;
-    height: 32vw !important;
-    min-height: 120px !important;
-  }
-  .market-item-controls-row {
-    gap: 0.4rem;
-    flex-wrap: wrap;
-  }
   .market-item-control-group {
     min-width: 80px;
     max-width: 120px;
     margin: 0 0.2rem;
   }
-  /* Remove desktop min/max-width for mobile */
-  .market-item-card {
-    min-width: unset !important;
-    max-width: unset !important;
-  }
-  .market-item-card-content {
-    flex-direction: column;
-    gap: 8px;
-  }
   .market-item-title {
     font-size: 1.05rem;
   }
-}
-
-.market-item-header-row {
-  display: none;
-}
-
-.market-item-title-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 100%;
-  gap: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.market-item-controls-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-  gap: .5rem;
-  margin-bottom: 0.5rem;
-}
-
-.market-item-quality-selector,
-.market-item-city-selector,
-.chart-toggle-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 0;
-}
-
-.market-item-quality-selector label,
-.market-item-city-selector label,
-.chart-toggle-group label {
-  
-  margin-bottom: 0;
-  text-align: right;  
-}
-
-.chart-toggle-group {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-size: 1.2rem;
-}
-
-.market-item-controls-flex-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.market-item-control-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1 1 0;
-  min-width: 120px;
-  max-width: 220px;
-  margin: 0 0.5rem;
-}
-
-.toggle-switch {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-top: 2px;
-}
-
-.toggle-switch input[type="checkbox"] {
-  margin: 0 8px 0 0;
-}
-
-.slider {
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-  background: #444;
-  border-radius: 12px;
-  position: relative;
-  transition: background 0.2s;
-}
-
-.toggle-switch input[type="checkbox"]:checked + .slider {
-  background: #39ff14;
-}
-
-.slider:before {
-  content: '';
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 14px;
-  height: 14px;
-  background: #fff;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-
-.toggle-switch input[type="checkbox"]:checked + .slider:before {
-  transform: translateX(16px);
-}
-
-.button-toggle-group {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 4px;
-}
-.toggle-btn {
-  background: #23232b;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 4px 14px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.toggle-btn.active, .toggle-btn:active {
-  background: #3a3f4b;
-  color: #ffd166;
-  font-weight: bold;
-  border-color: #ffd166;
-}
-
-#use-avg-checkbox {
-  width: 22px;
-  height: 22px;
-  accent-color: #7b9fff;
-  border-radius: 4px;
-  margin-left: 6px;
-  margin-right: 2px;
-  vertical-align: middle;
-}
-
-/* Roman numeral prefix for tier */
-.roman-tier-prefix {
-  font-family: 'Noto Sans', 'Segoe UI', Arial, sans-serif;
-  font-stretch: ultra-condensed;
-  /* Remove any font-size or letter-spacing overrides */
-  /* font-size: inherit; */
-  /* letter-spacing: normal; */
-  margin-right: 1em;
-  margin-left: 1em;
-  vertical-align: baseline;
-  display: inline-block;
-  font-size: 1.5rem;
-}
-
-/* Roman numeral tier colors */
-.roman-tier-1 {
-  color: #444; /* dark gray */
-}
-.roman-tier-2 {
-  color: #888; /* lighter than dark gray */
-}
-.roman-tier-3 {
-  color: #39ff14; /* leaf green */
-  text-shadow: 0 0 8px #39ff14, 0 0 2px #000;
-}
-.roman-tier-4 {
-  color: #1e90ff; /* slightly darker sky blue */
-  text-shadow: 0 0 8px #1e90ff, 0 0 2px #000;
-}
-.roman-tier-5 {
-  color: #d7263d; /* crimson red */
-  text-shadow: 0 0 8px #d7263d, 0 0 2px #000;
-}
-.roman-tier-6 {
-  color: #ffb347; /* desert orange */
-  text-shadow: 0 0 8px #ffb347, 0 0 2px #000;
-}
-.roman-tier-7 {
-  color: #ffe135; /* bumble bee yellow */
-  text-shadow: 0 0 8px #ffe135, 0 0 2px #000;
-}
-.roman-tier-8 {
-  color: #f8f8ff; /* off white */
-  text-shadow: 0 0 8px #f8f8ff, 0 0 2px #000;
-}
-
-.close-btn {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  border: none;
-  color: #f56565;
-  font-size: 18px;
-  cursor: pointer;
-  font-weight: bold;
-  z-index: 2;
 }
