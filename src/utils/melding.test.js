@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateMeldingStrategies,
+  calculateSalvageOpportunities,
   getAveragePricesByItem,
   getFragmentId,
   getMeldingPool,
@@ -45,5 +46,28 @@ describe('artifact melding analysis', () => {
     expect(mage.expectedValue).toBe(1000);
     expect(mage.inputCost).toBe(500);
     expect(mage.profit).toBe(500);
+  });
+
+  it('finds profitable artifacts when salvage returns ten matching fragments', () => {
+    const pool = getMeldingPool('mage', 'rune', 4);
+    const prices = new Map([
+      [pool[0].itemId, 40],
+      [pool[1].itemId, 150],
+    ]);
+    const opportunities = calculateSalvageOpportunities({
+      fragmentPrice: 10,
+      material: 'rune',
+      prices,
+      tier: 4,
+    });
+
+    expect(opportunities).toHaveLength(2);
+    expect(opportunities[0]).toMatchObject({
+      artifactPrice: 40,
+      profit: 60,
+      salvageReturn: 100,
+      tree: 'mage',
+    });
+    expect(opportunities[1].profit).toBe(-50);
   });
 });

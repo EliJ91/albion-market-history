@@ -84,3 +84,31 @@ export function calculateMeldingStrategies({
     };
   });
 }
+
+export function calculateSalvageOpportunities({
+  fragmentPrice,
+  material,
+  prices,
+  tier,
+}) {
+  const salvageReturn = (fragmentPrice || 0) * 10;
+  const uniqueArtifacts = new Map(
+    getMeldingPool('any', material, tier).map((item) => [item.itemId, item]),
+  );
+
+  return [...uniqueArtifacts.values()]
+    .filter((item) => prices.get(item.itemId) != null)
+    .map((item) => {
+      const artifactPrice = prices.get(item.itemId);
+      const profit = salvageReturn - artifactPrice;
+
+      return {
+        ...item,
+        artifactPrice,
+        profit,
+        roi: artifactPrice > 0 ? (profit / artifactPrice) * 100 : 0,
+        salvageReturn,
+      };
+    })
+    .sort((left, right) => right.profit - left.profit || left.name.localeCompare(right.name));
+}

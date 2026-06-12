@@ -3,6 +3,7 @@ import { REGIONS } from '../config';
 import { fetchMultiHistory } from '../services/albionApi';
 import {
   calculateMeldingStrategies,
+  calculateSalvageOpportunities,
   getAveragePricesByItem,
   getFragmentId,
   getMeldingPool,
@@ -11,7 +12,6 @@ import {
 } from '../utils/melding';
 
 const silver = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
-const CITIES = ['All cities', 'Bridgewatch', 'Caerleon', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
 
 function StrategyCard({ strategy, prices }) {
   return (
@@ -45,9 +45,57 @@ function StrategyCard({ strategy, prices }) {
   );
 }
 
+function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material, tier }) {
+  const profitable = opportunities.filter((item) => item.profit > 0);
+  const grouped = MELDING_TREES.map((tree) => ({
+    items: profitable.filter((item) => item.tree === tree),
+    tree,
+  })).filter((group) => group.items.length > 0);
+  const salvageReturn = fragmentPrice * 10;
+
+  return (
+    <section className="salvage-opportunities" aria-labelledby="salvage-title">
+      <header className="salvage-heading">
+        <div>
+          <p className="eyebrow">Hypothetical salvage</p>
+          <h2 id="salvage-title">Profitable Artifact Salvage</h2>
+        </div>
+        <p>Assumes each artifact returns exactly 10 Tier {tier} {MELDING_MATERIALS[material].toLowerCase()} fragments.</p>
+      </header>
+
+      <div className="salvage-summary">
+        <span className="has-tooltip" data-tooltip="Ten times the all-city volume-weighted historical average fragment price.">10-fragment return<strong>{fragmentPrice ? `${silver.format(salvageReturn)} silver` : 'No price data'}</strong></span>
+        <span className="has-tooltip" data-tooltip="Artifacts whose average price is lower than the value of ten matching fragments.">Profitable artifacts<strong>{profitable.length}</strong></span>
+        <span className="has-tooltip" data-tooltip="Artifacts with market price data divided by all artifacts in the selected material pool.">Price coverage<strong>{opportunities.length}/{poolSize}</strong></span>
+      </div>
+
+      {!fragmentPrice && <div className="salvage-empty">Fragment price data is required to calculate salvage profit.</div>}
+      {fragmentPrice > 0 && grouped.length === 0 && <div className="salvage-empty">No artifacts with available price data are profitable to salvage.</div>}
+      {grouped.length > 0 && (
+        <div className="salvage-tree-grid">
+          {grouped.map((group) => (
+            <article className="salvage-tree" key={group.tree}>
+              <h3>{group.tree} tree</h3>
+              <div className="salvage-list">
+                {group.items.map((item) => (
+                  <div className="salvage-item" key={item.itemId}>
+                    <span>{item.name}</span>
+                    <span className="has-tooltip" data-tooltip="All-city volume-weighted historical average artifact price.">Artifact<strong>{silver.format(item.artifactPrice)}</strong></span>
+                    <span className="has-tooltip" data-tooltip="Value of ten matching fragments using their all-city average price.">Returns<strong>{silver.format(item.salvageReturn)}</strong></span>
+                    <span className="salvage-profit has-tooltip" data-tooltip="Ten-fragment return value minus the artifact's average price.">Profit<strong>+{silver.format(item.profit)}</strong></span>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function MeldingCalculator({ onClose, standalone = false }) {
   const [settings, setSettings] = useState({
-    city: 'All cities',
     material: 'rune',
     region: 'americas',
     tier: 4,
@@ -70,7 +118,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
     fetchMultiHistory(
       itemIds,
       settings.region,
-      settings.city === 'All cities' ? [] : [settings.city],
+      [],
       controller.signal,
     ).then((data) => {
       setHistory(data);
@@ -81,7 +129,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
       setStatus('error');
     });
     return () => controller.abort();
-  }, [itemIds.join('|'), settings.region, settings.city]);
+  }, [itemIds.join('|'), settings.region]);
 
   const prices = useMemo(() => getAveragePricesByItem(history), [history]);
   const fragmentId = getFragmentId(settings.material, settings.tier);
@@ -91,6 +139,13 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
     fragmentPrice,
     prices,
   }).sort((left, right) => right.profit - left.profit);
+  const salvageOpportunities = calculateSalvageOpportunities({
+    fragmentPrice,
+    material: settings.material,
+    prices,
+    tier: settings.tier,
+  });
+  const salvagePoolSize = getMeldingPool('any', settings.material, settings.tier).length;
 
   function update(updates) {
     setSettings((current) => ({ ...current, ...updates }));
@@ -113,11 +168,10 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
           </div>
         </header>
 
-        <p className="rrr-intro">Compares the volume-weighted historical average value of every possible artifact against the average cost of the fragments consumed.</p>
+        <p className="rrr-intro">Compares all-city volume-weighted historical average artifact prices against fragment costs and hypothetical salvage returns.</p>
 
         <section className="melding-controls">
           <label className="has-tooltip" data-tooltip="The Albion server whose market history is used.">Region<select value={settings.region} onChange={(event) => update({ region: event.target.value })}>{Object.entries(REGIONS).map(([value, region]) => <option key={value} value={value}>{region.label}</option>)}</select></label>
-          <label className="has-tooltip" data-tooltip="All cities combines every market; selecting a city uses only that market.">Market<select value={settings.city} onChange={(event) => update({ city: event.target.value })}>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></label>
           <label className="has-tooltip" data-tooltip="The tier shared by the fragments and possible artifacts.">Tier<select value={settings.tier} onChange={(event) => update({ tier: Number(event.target.value) })}>{[4, 5, 6, 7, 8].map((tier) => <option key={tier} value={tier}>Tier {tier}</option>)}</select></label>
           <label className="has-tooltip" data-tooltip="The fragment material consumed to create an artifact.">Fragment<select value={settings.material} onChange={(event) => update({ material: event.target.value })}>{Object.entries(MELDING_MATERIALS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </section>
@@ -125,7 +179,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
         <div className="melding-source-summary">
           <span className="has-tooltip" data-tooltip="The selected fragment whose average price sets the melding cost.">Tier {settings.tier} {MELDING_MATERIALS[settings.material]} average</span>
           <strong className="has-tooltip" data-tooltip="Volume-weighted historical average price of one selected fragment.">{fragmentPrice ? `${silver.format(fragmentPrice)} silver` : 'No price data'}</strong>
-          <span>All cities averages every market. Any-tree melding costs 35 fragments; a selected tree costs 50.</span>
+          <span>Every price averages all cities. Any-tree melding costs 35 fragments; a selected tree costs 50.</span>
         </div>
 
         {status === 'loading' && <div className="card-message">Loading fragment and artifact price history...</div>}
@@ -134,6 +188,15 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
           <section className="melding-strategies" aria-label="Melding strategy profitability">
             {strategies.map((strategy) => <StrategyCard key={strategy.tree} strategy={strategy} prices={prices} />)}
           </section>
+        )}
+        {status === 'ready' && (
+          <SalvageOpportunities
+            fragmentPrice={fragmentPrice}
+            material={settings.material}
+            opportunities={salvageOpportunities}
+            poolSize={salvagePoolSize}
+            tier={settings.tier}
+          />
         )}
       </article>
     </div>
