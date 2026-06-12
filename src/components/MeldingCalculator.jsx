@@ -177,9 +177,9 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
             <h1 id="melding-title">Artifact Melding Profitability</h1>
           </div>
           <div className="header-actions">
-            {!standalone && <button className="icon-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#melding-calculator`, '_blank', 'noopener')}>Open in new page</button>}
+            {!standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#melding-calculator`, '_blank', 'noopener')}>Open In New Page</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
-            {standalone && <button className="icon-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market history</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market History</button>}
           </div>
         </header>
 

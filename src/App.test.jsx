@@ -18,14 +18,14 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: 'Market History' })).toBeInTheDocument();
     expect(screen.getByLabelText('Item')).toBeInTheDocument();
     expect(screen.getByText('Add an item to begin')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Compare RRR' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Artifact melding' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Compare RRR' })).toHaveClass('navigation-button');
+    expect(screen.getByRole('button', { name: 'Artifact Melding' })).toHaveClass('navigation-button');
   });
 
   it('opens the artifact melding and salvage profitability calculator with city filtering', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Artifact melding' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Artifact Melding' }));
 
     expect(screen.getByRole('dialog', { name: 'Artifact Melding Profitability' })).toBeInTheDocument();
     expect(screen.getByLabelText('Market')).toHaveDisplayValue('All cities');

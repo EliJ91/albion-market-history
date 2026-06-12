@@ -536,6 +536,19 @@ summary:focus-visible {
   border-color: #818cf8;
 }
 
+.navigation-button {
+  border-color: rgba(129, 140, 248, 0.4);
+  background: rgba(15, 23, 42, 0.9);
+  color: #e2e8f0;
+  font-weight: 800;
+}
+
+.navigation-button:hover {
+  border-color: #818cf8;
+  background: rgba(99, 102, 241, 0.14);
+  color: #fff;
+}
+
 .icon-button.danger:hover {
   border-color: #fb7185;
   color: #fb7185;

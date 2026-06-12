@@ -106,8 +106,8 @@ export default function App() {
           <h1>Market History</h1>
         </div>
         <div className="topbar-actions">
-          <button className="icon-button" type="button" onClick={() => setMeldingOpen(true)}>Artifact melding</button>
-          <button className="primary-button" type="button" onClick={() => setCalculatorOpen(true)}>Compare RRR</button>
+          <button className="icon-button navigation-button" type="button" onClick={() => setMeldingOpen(true)}>Artifact Melding</button>
+          <button className="icon-button navigation-button" type="button" onClick={() => setCalculatorOpen(true)}>Compare RRR</button>
         </div>
       </header>
 
