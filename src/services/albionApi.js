@@ -40,7 +40,7 @@ function mergeHistory(...historyGroups) {
 
   for (const history of historyGroups) {
     for (const entry of history) {
-      const key = `${entry.location}|${entry.quality}`;
+      const key = `${entry.item_id || ''}|${entry.location}|${entry.quality}`;
       const existing = merged.get(key);
 
       if (!existing) {
@@ -88,5 +88,25 @@ export async function fetchHistory(itemId, region, signal) {
 
 export async function fetchMultiHistory(itemIds, region, locations = [], signal) {
   if (!itemIds.length) return [];
-  return requestHistory(getMultiHistoryUrl(itemIds, region, locations), signal);
+  if (locations.length) {
+    return requestHistory(getMultiHistoryUrl(itemIds, region, locations), signal);
+  }
+
+  const primaryRequest = requestHistory(getMultiHistoryUrl(itemIds, region), signal);
+  const specialMarketsRequest = requestHistory(
+    getMultiHistoryUrl(itemIds, region, SPECIAL_MARKET_LOCATIONS),
+    signal,
+  ).catch((error) => {
+    if (error.name === 'AbortError') throw error;
+    return [];
+  });
+  const [primaryHistory, specialMarketsHistory] = await Promise.all([
+    primaryRequest,
+    specialMarketsRequest,
+  ]);
+
+  return mergeHistory(
+    primaryHistory,
+    specialMarketsHistory.filter((entry) => SPECIAL_MARKET_LOCATION_SET.has(entry.location)),
+  );
 }

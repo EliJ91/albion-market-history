@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { fetchHistory, getHistoryUrl } from './albionApi';
+import { fetchHistory, fetchMultiHistory, getHistoryUrl } from './albionApi';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -66,6 +66,45 @@ describe('Albion API URLs', () => {
       'Arthurs Rest Smugglers Network',
       'Black Market',
       'Caerleon',
+    ]);
+  });
+
+  it('includes Rest markets in all-city multi-item history without merging different items together', async () => {
+    const response = (data) => Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(data),
+    });
+    vi.stubGlobal('fetch', vi.fn()
+      .mockReturnValueOnce(response([
+        {
+          item_id: 'T4_RUNE',
+          location: 'Caerleon',
+          quality: 1,
+          data: [{ timestamp: '2026-06-01T00:00:00', avg_price: 10, item_count: 1 }],
+        },
+        {
+          item_id: 'T4_RELIC',
+          location: 'Caerleon',
+          quality: 1,
+          data: [{ timestamp: '2026-06-01T00:00:00', avg_price: 20, item_count: 1 }],
+        },
+      ]))
+      .mockReturnValueOnce(response([
+        {
+          item_id: 'T4_RUNE',
+          location: 'Arthurs Rest Smugglers Network',
+          quality: 1,
+          data: [{ timestamp: '2026-06-01T00:00:00', avg_price: 12, item_count: 1 }],
+        },
+      ])));
+
+    const history = await fetchMultiHistory(['T4_RUNE', 'T4_RELIC'], 'americas');
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(history.map((entry) => `${entry.item_id}:${entry.location}`).sort()).toEqual([
+      'T4_RELIC:Caerleon',
+      'T4_RUNE:Arthurs Rest Smugglers Network',
+      'T4_RUNE:Caerleon',
     ]);
   });
 });

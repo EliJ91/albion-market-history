@@ -28,15 +28,27 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Artifact melding' }));
 
     expect(screen.getByRole('dialog', { name: 'Artifact Melding Profitability' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Market')).toHaveValue('All cities');
+    expect(screen.getByLabelText('Market')).toHaveDisplayValue('All cities');
+    expect(screen.getByLabelText('Market')).toHaveTextContent("Arthur's Rest");
+    expect(screen.getByLabelText('Market')).toHaveTextContent("Merlyn's Rest");
+    expect(screen.getByLabelText('Market')).toHaveTextContent("Morgana's Rest");
     expect(screen.queryByLabelText('Any-tree cost')).not.toBeInTheDocument();
     expect(screen.getByText(/Any-tree melding costs 35 fragments/)).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Profitable Artifact Salvage' })).toBeInTheDocument();
     expect(screen.getByText(/returns exactly 10 Tier 4 rune fragments/)).toBeInTheDocument();
     expect(screen.getByLabelText('Market').closest('label')).toHaveAttribute(
       'data-tooltip',
-      expect.stringContaining('salvage profitability'),
+      expect.stringContaining('Rest'),
     );
+
+    fireEvent.change(screen.getByLabelText('Market'), {
+      target: { value: 'Arthurs Rest Smugglers Network' },
+    });
+    await waitFor(() => expect(fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining('locations=Arthurs%20Rest%20Smugglers%20Network'),
+      expect.objectContaining({ signal: expect.anything() }),
+    ));
+    expect(screen.getByText(/Every price uses Arthur's Rest history only/)).toBeInTheDocument();
   });
 
   it('opens the RRR comparison calculator', () => {
@@ -113,7 +125,7 @@ describe('App', () => {
     expect(screen.getAllByDisplayValue('2 weeks')).toHaveLength(1);
     expect(screen.getAllByDisplayValue('Volume')).toHaveLength(1);
     expect(screen.getAllByText('Show Averages')[1].closest('label').querySelector('input')).toBeChecked();
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(10));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(12));
   });
 
   it('reorders saved item cards by dragging them', () => {
