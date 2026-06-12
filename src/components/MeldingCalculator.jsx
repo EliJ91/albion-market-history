@@ -1,0 +1,141 @@
+import { useEffect, useMemo, useState } from 'react';
+import { REGIONS } from '../config';
+import { fetchMultiHistory } from '../services/albionApi';
+import {
+  calculateMeldingStrategies,
+  getAveragePricesByItem,
+  getFragmentId,
+  getMeldingPool,
+  MELDING_MATERIALS,
+  MELDING_TREES,
+} from '../utils/melding';
+
+const silver = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const CITIES = ['All cities', 'Bridgewatch', 'Caerleon', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
+
+function StrategyCard({ strategy, prices }) {
+  return (
+    <details className={`melding-strategy ${strategy.profit >= 0 ? 'profit' : 'loss'}`}>
+      <summary>
+        <div>
+          <strong className="has-tooltip" data-tooltip="The artifact tree used for this melding option.">{strategy.tree === 'any' ? 'Any tree' : strategy.tree}</strong>
+          <span className="has-tooltip" data-tooltip="The fixed number of fragments consumed by one meld.">{strategy.fragmentsUsed} fragments</span>
+        </div>
+        <div className="melding-strategy-result">
+          <strong className="has-tooltip" data-tooltip="Expected artifact value minus the cost of the consumed fragments.">{strategy.profit >= 0 ? '+' : ''}{silver.format(strategy.profit)} silver</strong>
+          <span className="has-tooltip" data-tooltip="Expected profit or loss as a percentage of the fragment cost.">{strategy.roi >= 0 ? '+' : ''}{strategy.roi.toFixed(1)}% ROI</span>
+        </div>
+      </summary>
+
+      <div className="melding-metrics">
+        <span className="has-tooltip" data-tooltip="Average fragment price multiplied by the fragments consumed.">Input cost<strong>{silver.format(strategy.inputCost)}</strong></span>
+        <span className="has-tooltip" data-tooltip="Average market value of the possible artifact results that have price data.">Expected artifact value<strong>{silver.format(strategy.expectedValue)}</strong></span>
+        <span className="has-tooltip" data-tooltip="Possible artifacts with market data divided by all possible artifacts.">Price coverage<strong>{strategy.pricedOutputs.length}/{strategy.pool.length}</strong></span>
+      </div>
+
+      <div className="melding-output-list">
+        {strategy.pool.map((item) => (
+          <div key={item.itemId} className={prices.get(item.itemId) == null ? 'missing-price' : ''}>
+            <span>{item.name}</span>
+            <strong className="has-tooltip" data-tooltip="This artifact's volume-weighted historical average market price.">{prices.get(item.itemId) == null ? 'No data' : silver.format(prices.get(item.itemId))}</strong>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+export default function MeldingCalculator({ onClose, standalone = false }) {
+  const [settings, setSettings] = useState({
+    city: 'All cities',
+    material: 'rune',
+    region: 'americas',
+    tier: 4,
+  });
+  const [history, setHistory] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [error, setError] = useState('');
+
+  const itemIds = useMemo(() => {
+    const artifactIds = MELDING_TREES.flatMap((tree) => (
+      getMeldingPool(tree, settings.material, settings.tier).map((item) => item.itemId)
+    ));
+    return [getFragmentId(settings.material, settings.tier), ...new Set(artifactIds)];
+  }, [settings.material, settings.tier]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setStatus('loading');
+    setError('');
+    fetchMultiHistory(
+      itemIds,
+      settings.region,
+      settings.city === 'All cities' ? [] : [settings.city],
+      controller.signal,
+    ).then((data) => {
+      setHistory(data);
+      setStatus('ready');
+    }).catch((requestError) => {
+      if (requestError.name === 'AbortError') return;
+      setError(requestError.message);
+      setStatus('error');
+    });
+    return () => controller.abort();
+  }, [itemIds.join('|'), settings.region, settings.city]);
+
+  const prices = useMemo(() => getAveragePricesByItem(history), [history]);
+  const fragmentId = getFragmentId(settings.material, settings.tier);
+  const fragmentPrice = prices.get(fragmentId) || 0;
+  const strategies = calculateMeldingStrategies({
+    ...settings,
+    fragmentPrice,
+    prices,
+  }).sort((left, right) => right.profit - left.profit);
+
+  function update(updates) {
+    setSettings((current) => ({ ...current, ...updates }));
+  }
+
+  return (
+    <div className={standalone ? 'rrr-page' : 'rrr-modal-backdrop'} role={standalone ? undefined : 'presentation'} onMouseDown={(event) => {
+      if (!standalone && event.target === event.currentTarget) onClose();
+    }}>
+      <article className="rrr-calculator melding-calculator" role={standalone ? undefined : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="melding-title">
+        <header className="rrr-header">
+          <div>
+            <p className="eyebrow">Artifact foundry</p>
+            <h1 id="melding-title">Artifact Melding Profitability</h1>
+          </div>
+          <div className="header-actions">
+            {!standalone && <button className="icon-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#melding-calculator`, '_blank', 'noopener')}>Open in new page</button>}
+            {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
+            {standalone && <button className="icon-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market history</button>}
+          </div>
+        </header>
+
+        <p className="rrr-intro">Compares the volume-weighted historical average value of every possible artifact against the average cost of the fragments consumed.</p>
+
+        <section className="melding-controls">
+          <label className="has-tooltip" data-tooltip="The Albion server whose market history is used.">Region<select value={settings.region} onChange={(event) => update({ region: event.target.value })}>{Object.entries(REGIONS).map(([value, region]) => <option key={value} value={value}>{region.label}</option>)}</select></label>
+          <label className="has-tooltip" data-tooltip="All cities combines every market; selecting a city uses only that market.">Market<select value={settings.city} onChange={(event) => update({ city: event.target.value })}>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></label>
+          <label className="has-tooltip" data-tooltip="The tier shared by the fragments and possible artifacts.">Tier<select value={settings.tier} onChange={(event) => update({ tier: Number(event.target.value) })}>{[4, 5, 6, 7, 8].map((tier) => <option key={tier} value={tier}>Tier {tier}</option>)}</select></label>
+          <label className="has-tooltip" data-tooltip="The fragment material consumed to create an artifact.">Fragment<select value={settings.material} onChange={(event) => update({ material: event.target.value })}>{Object.entries(MELDING_MATERIALS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+        </section>
+
+        <div className="melding-source-summary">
+          <span className="has-tooltip" data-tooltip="The selected fragment whose average price sets the melding cost.">Tier {settings.tier} {MELDING_MATERIALS[settings.material]} average</span>
+          <strong className="has-tooltip" data-tooltip="Volume-weighted historical average price of one selected fragment.">{fragmentPrice ? `${silver.format(fragmentPrice)} silver` : 'No price data'}</strong>
+          <span>All cities averages every market. Any-tree melding costs 35 fragments; a selected tree costs 50.</span>
+        </div>
+
+        {status === 'loading' && <div className="card-message">Loading fragment and artifact price history...</div>}
+        {status === 'error' && <div className="card-message error">{error}</div>}
+        {status === 'ready' && (
+          <section className="melding-strategies" aria-label="Melding strategy profitability">
+            {strategies.map((strategy) => <StrategyCard key={strategy.tree} strategy={strategy} prices={prices} />)}
+          </section>
+        )}
+      </article>
+    </div>
+  );
+}
