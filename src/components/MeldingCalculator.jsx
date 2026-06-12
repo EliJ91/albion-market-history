@@ -12,6 +12,7 @@ import {
 } from '../utils/melding';
 
 const silver = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const CITIES = ['All cities', 'Bridgewatch', 'Caerleon', 'Fort Sterling', 'Lymhurst', 'Martlock', 'Thetford', 'Brecilien'];
 
 function StrategyCard({ strategy, prices }) {
   return (
@@ -96,6 +97,7 @@ function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material
 
 export default function MeldingCalculator({ onClose, standalone = false }) {
   const [settings, setSettings] = useState({
+    city: 'All cities',
     material: 'rune',
     region: 'americas',
     tier: 4,
@@ -118,7 +120,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
     fetchMultiHistory(
       itemIds,
       settings.region,
-      [],
+      settings.city === 'All cities' ? [] : [settings.city],
       controller.signal,
     ).then((data) => {
       setHistory(data);
@@ -129,7 +131,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
       setStatus('error');
     });
     return () => controller.abort();
-  }, [itemIds.join('|'), settings.region]);
+  }, [itemIds.join('|'), settings.region, settings.city]);
 
   const prices = useMemo(() => getAveragePricesByItem(history), [history]);
   const fragmentId = getFragmentId(settings.material, settings.tier);
@@ -168,10 +170,11 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
           </div>
         </header>
 
-        <p className="rrr-intro">Compares all-city volume-weighted historical average artifact prices against fragment costs and hypothetical salvage returns.</p>
+        <p className="rrr-intro">Compares volume-weighted historical average artifact prices against fragment costs and hypothetical salvage returns.</p>
 
         <section className="melding-controls">
           <label className="has-tooltip" data-tooltip="The Albion server whose market history is used.">Region<select value={settings.region} onChange={(event) => update({ region: event.target.value })}>{Object.entries(REGIONS).map(([value, region]) => <option key={value} value={value}>{region.label}</option>)}</select></label>
+          <label className="has-tooltip" data-tooltip="All cities combines every market; selecting a city recalculates melding and salvage profitability using only that market.">Market<select value={settings.city} onChange={(event) => update({ city: event.target.value })}>{CITIES.map((city) => <option key={city}>{city}</option>)}</select></label>
           <label className="has-tooltip" data-tooltip="The tier shared by the fragments and possible artifacts.">Tier<select value={settings.tier} onChange={(event) => update({ tier: Number(event.target.value) })}>{[4, 5, 6, 7, 8].map((tier) => <option key={tier} value={tier}>Tier {tier}</option>)}</select></label>
           <label className="has-tooltip" data-tooltip="The fragment material consumed to create an artifact.">Fragment<select value={settings.material} onChange={(event) => update({ material: event.target.value })}>{Object.entries(MELDING_MATERIALS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         </section>
@@ -179,7 +182,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
         <div className="melding-source-summary">
           <span className="has-tooltip" data-tooltip="The selected fragment whose average price sets the melding cost.">Tier {settings.tier} {MELDING_MATERIALS[settings.material]} average</span>
           <strong className="has-tooltip" data-tooltip="Volume-weighted historical average price of one selected fragment.">{fragmentPrice ? `${silver.format(fragmentPrice)} silver` : 'No price data'}</strong>
-          <span>Every price averages all cities. Any-tree melding costs 35 fragments; a selected tree costs 50.</span>
+          <span>{settings.city === 'All cities' ? 'Every price averages all cities.' : `Every price uses ${settings.city} history only.`} Any-tree melding costs 35 fragments; a selected tree costs 50.</span>
         </div>
 
         {status === 'loading' && <div className="card-message">Loading fragment and artifact price history...</div>}

@@ -22,17 +22,21 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Artifact melding' })).toBeInTheDocument();
   });
 
-  it('opens the all-city artifact melding and salvage profitability calculator', async () => {
+  it('opens the artifact melding and salvage profitability calculator with city filtering', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Artifact melding' }));
 
     expect(screen.getByRole('dialog', { name: 'Artifact Melding Profitability' })).toBeInTheDocument();
-    expect(screen.queryByLabelText('Market')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Market')).toHaveValue('All cities');
     expect(screen.queryByLabelText('Any-tree cost')).not.toBeInTheDocument();
     expect(screen.getByText(/Any-tree melding costs 35 fragments/)).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Profitable Artifact Salvage' })).toBeInTheDocument();
     expect(screen.getByText(/returns exactly 10 Tier 4 rune fragments/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Market').closest('label')).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('salvage profitability'),
+    );
   });
 
   it('opens the RRR comparison calculator', () => {

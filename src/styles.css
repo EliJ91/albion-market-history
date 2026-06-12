@@ -880,7 +880,7 @@ footer {
 
 .melding-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 14px;
 }
