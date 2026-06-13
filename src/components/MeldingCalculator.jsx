@@ -117,6 +117,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
   const [history, setHistory] = useState([]);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const itemIds = useMemo(() => {
     const artifactIds = MELDING_TREES.flatMap((tree) => (
@@ -143,7 +144,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
       setStatus('error');
     });
     return () => controller.abort();
-  }, [itemIds.join('|'), settings.region, settings.city]);
+  }, [itemIds.join('|'), settings.region, settings.city, refreshKey]);
 
   const prices = useMemo(() => getAveragePricesByItem(history), [history]);
   const fragmentId = getFragmentId(settings.material, settings.tier);
@@ -177,6 +178,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
             <h1 id="melding-title">Artifact Melding Profitability</h1>
           </div>
           <div className="header-actions">
+            <button className="icon-button" type="button" onClick={() => setRefreshKey((value) => value + 1)}>Refresh</button>
             {!standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#melding-calculator`, '_blank', 'noopener')}>Open In New Page</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
             {standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market History</button>}

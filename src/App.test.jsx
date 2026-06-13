@@ -36,6 +36,7 @@ describe('App', () => {
     expect(screen.getByText(/Any-tree melding costs 35 fragments/)).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Profitable Artifact Salvage' })).toBeInTheDocument();
     expect(screen.getByText(/returns exactly 10 Tier 4 rune fragments/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
     expect(screen.getByLabelText('Market').closest('label')).toHaveAttribute(
       'data-tooltip',
       expect.stringContaining('Rest'),
@@ -49,6 +50,14 @@ describe('App', () => {
       expect.objectContaining({ signal: expect.anything() }),
     ));
     expect(screen.getByText(/Every price uses Arthur's Rest history only/)).toBeInTheDocument();
+
+    const callsBeforeRefresh = fetch.mock.calls.length;
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+    await waitFor(() => expect(fetch.mock.calls.length).toBeGreaterThan(callsBeforeRefresh));
+    expect(fetch).toHaveBeenLastCalledWith(
+      expect.stringContaining('locations=Arthurs%20Rest%20Smugglers%20Network'),
+      expect.objectContaining({ signal: expect.anything() }),
+    );
   });
 
   it('opens the RRR comparison calculator', () => {
