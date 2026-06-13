@@ -37,6 +37,7 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: 'Profitable Artifact Salvage' })).toBeInTheDocument();
     expect(screen.getByText(/returns exactly 10 Tier 4 rune fragments/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Missing Price Data 29' })).toBeInTheDocument();
     expect(screen.getByLabelText('Market').closest('label')).toHaveAttribute(
       'data-tooltip',
       expect.stringContaining('Rest'),

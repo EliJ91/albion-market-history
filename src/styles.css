@@ -1096,12 +1096,26 @@ footer {
 }
 
 .salvage-tree h3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   color: #4ade80;
   font-size: 0.82rem;
   text-transform: capitalize;
+}
+
+.salvage-tree h3 span {
+  min-width: 22px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  font-size: 0.65rem;
+  text-align: center;
 }
 
 .salvage-list {
@@ -1136,6 +1150,36 @@ footer {
 
 .salvage-item .salvage-profit strong {
   color: #4ade80;
+}
+
+.salvage-missing-data {
+  border-color: rgba(251, 113, 133, 0.3);
+}
+
+.salvage-missing-data h3 {
+  color: #fb7185;
+}
+
+.salvage-missing-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  color: #94a3b8;
+  font-size: 0.68rem;
+}
+
+.salvage-missing-item + .salvage-missing-item {
+  border-top: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.salvage-missing-item strong {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: capitalize;
 }
 
 .salvage-empty {

@@ -60,6 +60,9 @@ function StrategyCard({ strategy, prices }) {
 
 function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material, tier }) {
   const profitable = opportunities.filter((item) => item.profit > 0);
+  const pricedItemIds = new Set(opportunities.map((item) => item.itemId));
+  const missingPrices = getMeldingPool('any', material, tier)
+    .filter((item) => !pricedItemIds.has(item.itemId));
   const grouped = MELDING_TREES.map((tree) => ({
     items: profitable.filter((item) => item.tree === tree),
     tree,
@@ -84,7 +87,7 @@ function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material
 
       {!fragmentPrice && <div className="salvage-empty">Fragment price data is required to calculate salvage profit.</div>}
       {fragmentPrice > 0 && grouped.length === 0 && <div className="salvage-empty">No artifacts with available price data are profitable to salvage.</div>}
-      {grouped.length > 0 && (
+      {(grouped.length > 0 || missingPrices.length > 0) && (
         <div className="salvage-tree-grid">
           {grouped.map((group) => (
             <article className="salvage-tree" key={group.tree}>
@@ -101,6 +104,19 @@ function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material
               </div>
             </article>
           ))}
+          {missingPrices.length > 0 && (
+            <article className="salvage-tree salvage-missing-data">
+              <h3>Missing Price Data <span>{missingPrices.length}</span></h3>
+              <div className="salvage-list">
+                {missingPrices.map((item) => (
+                  <div className="salvage-missing-item" key={item.itemId}>
+                    <span>{item.name}</span>
+                    <strong>{item.tree} tree</strong>
+                  </div>
+                ))}
+              </div>
+            </article>
+          )}
         </div>
       )}
     </section>
