@@ -4,6 +4,7 @@ import { fetchMultiHistory } from '../services/albionApi';
 import {
   calculateMeldingStrategies,
   calculateSalvageOpportunities,
+  getArtifactPriceCoverage,
   getAveragePricesByItem,
   getFragmentId,
   getMeldingPool,
@@ -58,11 +59,9 @@ function StrategyCard({ strategy, prices }) {
   );
 }
 
-function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material, tier }) {
+function SalvageOpportunities({ coverage, fragmentPrice, opportunities, material, tier }) {
   const profitable = opportunities.filter((item) => item.profit > 0);
-  const pricedItemIds = new Set(opportunities.map((item) => item.itemId));
-  const missingPrices = getMeldingPool('any', material, tier)
-    .filter((item) => !pricedItemIds.has(item.itemId));
+  const missingPrices = coverage.missingArtifacts;
   const grouped = MELDING_TREES.map((tree) => ({
     items: profitable.filter((item) => item.tree === tree),
     tree,
@@ -82,7 +81,7 @@ function SalvageOpportunities({ fragmentPrice, opportunities, poolSize, material
       <div className="salvage-summary">
         <span className="has-tooltip" data-tooltip="Ten times the all-city volume-weighted historical average fragment price.">10-fragment return<strong>{fragmentPrice ? `${silver.format(salvageReturn)} silver` : 'No price data'}</strong></span>
         <span className="has-tooltip" data-tooltip="Artifacts whose average price is lower than the value of ten matching fragments.">Profitable artifacts<strong>{profitable.length}</strong></span>
-        <span className="has-tooltip" data-tooltip="Artifacts with market price data divided by all artifacts in the selected material pool.">Price coverage<strong>{opportunities.length}/{poolSize}</strong></span>
+        <span className="has-tooltip" data-tooltip="Artifacts with market price data divided by all artifacts in the selected material pool.">Price coverage<strong>{coverage.pricedArtifacts.length}/{coverage.pool.length}</strong></span>
       </div>
 
       {!fragmentPrice && <div className="salvage-empty">Fragment price data is required to calculate salvage profit.</div>}
@@ -176,7 +175,11 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
     prices,
     tier: settings.tier,
   });
-  const salvagePoolSize = getMeldingPool('any', settings.material, settings.tier).length;
+  const salvageCoverage = getArtifactPriceCoverage({
+    material: settings.material,
+    prices,
+    tier: settings.tier,
+  });
   const selectedMarket = MARKETS.find((market) => market.value === settings.city);
 
   function update(updates) {
@@ -225,10 +228,10 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
         )}
         {status === 'ready' && (
           <SalvageOpportunities
+            coverage={salvageCoverage}
             fragmentPrice={fragmentPrice}
             material={settings.material}
             opportunities={salvageOpportunities}
-            poolSize={salvagePoolSize}
             tier={settings.tier}
           />
         )}

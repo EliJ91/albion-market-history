@@ -85,6 +85,22 @@ export function calculateMeldingStrategies({
   });
 }
 
+export function getArtifactPriceCoverage({
+  material,
+  prices,
+  tier,
+}) {
+  const pool = [...new Map(
+    getMeldingPool('any', material, tier).map((item) => [item.itemId, item]),
+  ).values()];
+
+  return {
+    missingArtifacts: pool.filter((item) => prices.get(item.itemId) == null),
+    pool,
+    pricedArtifacts: pool.filter((item) => prices.get(item.itemId) != null),
+  };
+}
+
 export function calculateSalvageOpportunities({
   fragmentPrice,
   material,
@@ -92,12 +108,9 @@ export function calculateSalvageOpportunities({
   tier,
 }) {
   const salvageReturn = (fragmentPrice || 0) * 10;
-  const uniqueArtifacts = new Map(
-    getMeldingPool('any', material, tier).map((item) => [item.itemId, item]),
-  );
+  const { pricedArtifacts } = getArtifactPriceCoverage({ material, prices, tier });
 
-  return [...uniqueArtifacts.values()]
-    .filter((item) => prices.get(item.itemId) != null)
+  return pricedArtifacts
     .map((item) => {
       const artifactPrice = prices.get(item.itemId);
       const profit = salvageReturn - artifactPrice;

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   calculateMeldingStrategies,
   calculateSalvageOpportunities,
+  getArtifactPriceCoverage,
   getAveragePricesByItem,
   getFragmentId,
   getMeldingPool,
@@ -69,5 +70,20 @@ describe('artifact melding analysis', () => {
       tree: 'mage',
     });
     expect(opportunities[1].profit).toBe(-50);
+  });
+
+  it('keeps salvage price coverage and missing artifacts aligned', () => {
+    const pool = getMeldingPool('any', 'avalonian', 6);
+    const missingArtifact = pool.at(-1);
+    const prices = new Map(pool.slice(0, -1).map((item) => [item.itemId, 1000]));
+    const coverage = getArtifactPriceCoverage({
+      material: 'avalonian',
+      prices,
+      tier: 6,
+    });
+
+    expect(coverage.pool).toHaveLength(29);
+    expect(coverage.pricedArtifacts).toHaveLength(28);
+    expect(coverage.missingArtifacts).toEqual([missingArtifact]);
   });
 });
