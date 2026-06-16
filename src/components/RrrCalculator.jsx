@@ -10,6 +10,11 @@ export const initialScenario = {
   dailyBonus: 0,
 };
 
+function navigateTo(hash) {
+  window.location.hash = hash;
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}
+
 export function ScenarioEditor({ label, scenario, onChange, onUseRrr }) {
   const result = useMemo(() => calculateScenario(scenario), [scenario]);
   const preset = LOCATION_PRESETS[scenario.location];
@@ -112,7 +117,7 @@ export default function RrrCalculator({ onClose, standalone = false }) {
     <div className={standalone ? 'rrr-page' : 'rrr-modal-backdrop'} role={standalone ? undefined : 'presentation'} onMouseDown={(event) => {
       if (!standalone && event.target === event.currentTarget) onClose();
     }}>
-      <article className="rrr-calculator" role={standalone ? undefined : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="rrr-title">
+      <article className="rrr-calculator" role={standalone ? 'main' : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="rrr-title">
         <header className="rrr-header">
           <div>
             <p className="eyebrow">Crafting comparison</p>
@@ -121,7 +126,9 @@ export default function RrrCalculator({ onClose, standalone = false }) {
           <div className="header-actions">
             {!standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#rrr-calculator`, '_blank', 'noopener')}>Open In New Page</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
-            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market History</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#market')}>Market History</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#crafting-planner')}>Crafting Planner</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#artifact-melding')}>Artifact Melding</button>}
           </div>
         </header>
 

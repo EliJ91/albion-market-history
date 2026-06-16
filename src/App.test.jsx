@@ -8,12 +8,19 @@ vi.mock('./components/PriceChart', () => ({
 
 describe('App', () => {
   beforeEach(() => {
+    window.history.pushState(null, '', '/');
     localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  it('renders the item search and empty state', () => {
+  it('renders a landing page and enters the market through Log In', () => {
     render(<App />);
+
+    expect(screen.getByText('Powered by Albion Data Project')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Albion Profit Tools' })).toBeInTheDocument();
+    expect(screen.getByText('Knowledge is power. Data is profit.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Continue to Market' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Log In' }));
 
     expect(screen.getByRole('heading', { name: 'Market History' })).toBeInTheDocument();
     expect(screen.getByLabelText('Item')).toBeInTheDocument();
@@ -25,10 +32,13 @@ describe('App', () => {
 
   it('opens the artifact melding and salvage profitability calculator with city filtering', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [] }));
+    window.history.pushState(null, '', '/#artifact-melding');
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Artifact Melding' }));
 
-    expect(screen.getByRole('dialog', { name: 'Artifact Melding Profitability' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Artifact Melding Profitability' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Market History' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Crafting Planner' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Compare RRR' })).toBeInTheDocument();
     expect(screen.getByLabelText('Market')).toHaveDisplayValue('All cities');
     expect(screen.getByLabelText('Market')).toHaveTextContent("Arthur's Rest");
     expect(screen.getByLabelText('Market')).toHaveTextContent("Merlyn's Rest");
@@ -63,6 +73,7 @@ describe('App', () => {
   });
 
   it('opens the RRR comparison calculator', () => {
+    window.history.pushState(null, '', '/#market');
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Compare RRR' }));
 
@@ -76,11 +87,14 @@ describe('App', () => {
   });
 
   it('opens the crafting planner, calculates RRR, and manages craft entries', () => {
+    window.history.pushState(null, '', '/#crafting-planner');
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Crafting Planner' }));
 
-    const dialog = screen.getByRole('dialog', { name: 'Crafting Planner' });
-    expect(dialog).toBeInTheDocument();
+    const dialog = screen.getByRole('main', { name: 'Crafting Planner' });
+    expect(screen.getByRole('heading', { name: 'Crafting Planner' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Market History' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Artifact Melding' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Compare RRR' })).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', { name: 'Calculate' }));
     const picker = screen.getByRole('dialog', { name: 'Choose RRR' });
     expect(within(picker).getByRole('heading', { name: 'Scenario A' })).toBeInTheDocument();
@@ -117,9 +131,11 @@ describe('App', () => {
     expect(within(dialog).queryByText('Silver cost')).not.toBeInTheDocument();
     expect(localStorage.getItem('albion-market-history:crafting-planner:v1')).toContain('T4_MAIN_SWORD');
 
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Crafting Planner' }));
-    const reopenedDialog = screen.getByRole('dialog', { name: 'Crafting Planner' });
+    window.history.pushState(null, '', '/#market');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    window.history.pushState(null, '', '/#crafting-planner');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    const reopenedDialog = screen.getByRole('main', { name: 'Crafting Planner' });
     expect(within(reopenedDialog).getByRole('heading', { name: 'Items to bring' })).toBeInTheDocument();
     expect(within(reopenedDialog).getByText("Adept's Broadsword")).toBeInTheDocument();
 
@@ -129,6 +145,7 @@ describe('App', () => {
   });
 
   it('adds a chart, fetches live data, and saves only chart preferences', async () => {
+    window.history.pushState(null, '', '/#market');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: async () => [{
@@ -149,6 +166,7 @@ describe('App', () => {
   });
 
   it('restores searched items and their settings after the app is closed and reopened', async () => {
+    window.history.pushState(null, '', '/#market');
     localStorage.setItem('albion-market-history:cards:v2', JSON.stringify([
       {
         id: 'americas:T4_MAIN_SWORD',
@@ -193,6 +211,7 @@ describe('App', () => {
   });
 
   it('reorders saved item cards by dragging them', () => {
+    window.history.pushState(null, '', '/#market');
     localStorage.setItem('albion-market-history:cards:v2', JSON.stringify([
       {
         id: 'americas:T4_MAIN_SWORD',

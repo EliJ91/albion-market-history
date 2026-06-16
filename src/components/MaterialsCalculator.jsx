@@ -17,6 +17,11 @@ import { initialScenario, ScenarioEditor } from './RrrCalculator';
 const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
 const wholeNumber = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
+function navigateTo(hash) {
+  window.location.hash = hash;
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}
+
 function buildPlannerEntry({ amount, id, itemId, name, rrr }) {
   const recipe = getRecipe(itemId);
   const result = calculateRequiredMaterials({ amount, recipe, rrr });
@@ -222,7 +227,7 @@ function RrrPicker({ onChangeScenario, onClose, onUse, scenario }) {
   );
 }
 
-export default function MaterialsCalculator({ onClose, standalone = false }) {
+export default function MaterialsCalculator({ onClose, onOpenRrr, standalone = false }) {
   const [entries, setEntries] = useState(loadPlannerEntries);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -263,16 +268,17 @@ export default function MaterialsCalculator({ onClose, standalone = false }) {
     <div className={standalone ? 'rrr-page' : 'rrr-modal-backdrop'} role={standalone ? undefined : 'presentation'} onMouseDown={(event) => {
       if (!standalone && event.target === event.currentTarget) onClose();
     }}>
-      <article className="rrr-calculator materials-calculator" role={standalone ? undefined : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="materials-title">
+      <article className="rrr-calculator materials-calculator" role={standalone ? 'main' : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="materials-title">
         <header className="rrr-header">
           <div>
             <p className="eyebrow">Crafting planner</p>
             <h1 id="materials-title">Crafting Planner</h1>
           </div>
           <div className="header-actions">
-            {!standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#materials-calculator`, '_blank', 'noopener')}>Open In New Page</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#market')}>Market History</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#artifact-melding')}>Artifact Melding</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={onOpenRrr}>Compare RRR</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
-            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market History</button>}
           </div>
         </header>
 

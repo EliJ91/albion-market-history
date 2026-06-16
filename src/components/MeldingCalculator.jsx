@@ -27,6 +27,11 @@ const MARKETS = [
   { label: "Morgana's Rest", value: 'Morganas Rest Smugglers Network' },
 ];
 
+function navigateTo(hash) {
+  window.location.hash = hash;
+  window.dispatchEvent(new HashChangeEvent('hashchange'));
+}
+
 function StrategyCard({ strategy, prices }) {
   return (
     <details className={`melding-strategy ${strategy.profit >= 0 ? 'profit' : 'loss'}`}>
@@ -122,7 +127,7 @@ function SalvageOpportunities({ coverage, fragmentPrice, opportunities, material
   );
 }
 
-export default function MeldingCalculator({ onClose, standalone = false }) {
+export default function MeldingCalculator({ onClose, onOpenRrr, standalone = false }) {
   const [settings, setSettings] = useState({
     city: '',
     material: 'rune',
@@ -190,7 +195,7 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
     <div className={standalone ? 'rrr-page' : 'rrr-modal-backdrop'} role={standalone ? undefined : 'presentation'} onMouseDown={(event) => {
       if (!standalone && event.target === event.currentTarget) onClose();
     }}>
-      <article className="rrr-calculator melding-calculator" role={standalone ? undefined : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="melding-title">
+      <article className="rrr-calculator melding-calculator" role={standalone ? 'main' : 'dialog'} aria-modal={standalone ? undefined : 'true'} aria-labelledby="melding-title">
         <header className="rrr-header">
           <div>
             <p className="eyebrow">Artifact foundry</p>
@@ -198,9 +203,10 @@ export default function MeldingCalculator({ onClose, standalone = false }) {
           </div>
           <div className="header-actions">
             <button className="icon-button" type="button" onClick={() => setRefreshKey((value) => value + 1)}>Refresh</button>
-            {!standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.open(`${window.location.href.split('#')[0]}#melding-calculator`, '_blank', 'noopener')}>Open In New Page</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#market')}>Market History</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#crafting-planner')}>Crafting Planner</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={onOpenRrr}>Compare RRR</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
-            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => window.location.assign(window.location.href.split('#')[0])}>Market History</button>}
           </div>
         </header>
 
