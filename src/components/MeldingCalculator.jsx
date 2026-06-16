@@ -32,19 +32,19 @@ function StrategyCard({ strategy, prices }) {
     <details className={`melding-strategy ${strategy.profit >= 0 ? 'profit' : 'loss'}`}>
       <summary>
         <div>
-          <strong className="has-tooltip" data-tooltip="The artifact tree used for this melding option.">{strategy.tree === 'any' ? 'Any tree' : strategy.tree}</strong>
-          <span className="has-tooltip" data-tooltip="The fixed number of fragments consumed by one meld.">{strategy.fragmentsUsed} fragments</span>
+          <strong className="has-tooltip" data-tooltip="Which artifact group this meld can roll from.">{strategy.tree === 'any' ? 'Any tree' : strategy.tree}</strong>
+          <span className="has-tooltip" data-tooltip="How many fragments one meld consumes. Any uses 35; a chosen tree uses 50.">{strategy.fragmentsUsed} fragments</span>
         </div>
         <div className="melding-strategy-result">
-          <strong className="has-tooltip" data-tooltip="Expected artifact value minus the cost of the consumed fragments.">{strategy.profit >= 0 ? '+' : ''}{silver.format(strategy.profit)} silver</strong>
-          <span className="has-tooltip" data-tooltip="Expected profit or loss as a percentage of the fragment cost.">{strategy.roi >= 0 ? '+' : ''}{strategy.roi.toFixed(1)}% ROI</span>
+          <strong className="has-tooltip" data-tooltip="Average result value minus the fragment cost.">{strategy.profit >= 0 ? '+' : ''}{silver.format(strategy.profit)} silver</strong>
+          <span className="has-tooltip" data-tooltip="Profit compared with what you spent on fragments.">{strategy.roi >= 0 ? '+' : ''}{strategy.roi.toFixed(1)}% ROI</span>
         </div>
       </summary>
 
       <div className="melding-metrics">
-        <span className="has-tooltip" data-tooltip="Average fragment price multiplied by the fragments consumed.">Input cost<strong>{silver.format(strategy.inputCost)}</strong></span>
-        <span className="has-tooltip" data-tooltip="Average market value of the possible artifact results that have price data.">Expected artifact value<strong>{silver.format(strategy.expectedValue)}</strong></span>
-        <span className="has-tooltip" data-tooltip="Possible artifacts with market data divided by all possible artifacts.">Price coverage<strong>{strategy.pricedOutputs.length}/{strategy.pool.length}</strong></span>
+        <span className="has-tooltip" data-tooltip="Fragment price times the number of fragments used.">Input cost<strong>{silver.format(strategy.inputCost)}</strong></span>
+        <span className="has-tooltip" data-tooltip="Average value of the artifacts this meld can create.">Expected artifact value<strong>{silver.format(strategy.expectedValue)}</strong></span>
+        <span className="has-tooltip" data-tooltip="How many possible artifacts have price data. Higher coverage is more reliable.">Price coverage<strong>{strategy.pricedOutputs.length}/{strategy.pool.length}</strong></span>
       </div>
 
       <div className="melding-output-list">

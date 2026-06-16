@@ -135,6 +135,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
               days={card.days}
               history={history}
               itemId={card.itemId}
+              locations={selectedLocations}
               quality={card.quality}
               region={card.region}
             />

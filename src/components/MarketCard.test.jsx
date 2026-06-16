@@ -75,7 +75,7 @@ describe('MarketCard', () => {
     expect(screen.getByText('Reroll?')).toBeInTheDocument();
     expect(screen.getByText(/Min\. RRR:/)).toHaveAttribute(
       'data-tooltip',
-      expect.stringContaining('minimum resource return rate'),
+      expect.stringContaining('Break-even RRR'),
     );
     expect(screen.queryByText('Break-even minimum RRR')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Minimize card' }));

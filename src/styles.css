@@ -53,11 +53,11 @@ code {
 
 .has-tooltip::after {
   position: absolute;
-  z-index: 200;
-  bottom: calc(100% + 8px);
+  z-index: 10000;
+  bottom: calc(100% + 4px);
   left: 50%;
   width: max-content;
-  max-width: min(260px, calc(100vw - 32px));
+  max-width: min(300px, calc(100vw - 32px));
   padding: 7px 9px;
   border: 1px solid rgba(129, 140, 248, 0.4);
   border-radius: 7px;
@@ -73,8 +73,8 @@ code {
   pointer-events: none;
   text-align: left;
   text-transform: none;
-  transform: translate(-50%, 3px);
-  transition: opacity 120ms ease, transform 120ms ease;
+  transform: translate(-50%, 1px);
+  transition: opacity 80ms ease, transform 80ms ease;
   white-space: normal;
 }
 
@@ -82,7 +82,8 @@ code {
 .has-tooltip:focus::after,
 .has-tooltip:focus-within::after {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translate(-50%, -2px);
+  transition: opacity 140ms ease 450ms, transform 140ms ease 450ms;
 }
 
 .topbar {
@@ -838,15 +839,17 @@ footer {
 
 .rrr-scenario {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-content: start;
   padding: 16px;
   border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 12px;
   background: rgba(8, 13, 28, 0.52);
 }
 
-.rrr-scenario > label {
+.rrr-scenario > label,
+.rrr-field {
   display: grid;
   gap: 6px;
   color: #94a3b8;
@@ -854,15 +857,25 @@ footer {
   font-weight: 700;
 }
 
-.rrr-scenario-heading,
-.rrr-result-breakdown,
-.rrr-scenario > label:first-of-type {
-  grid-column: 1 / -1;
-}
-
 .rrr-scenario-heading strong {
   color: #4ade80;
   font-size: 1.25rem;
+}
+
+.rrr-control-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.rrr-control-row:empty {
+  display: none;
+}
+
+.rrr-focus-control {
+  min-height: 40px;
+  align-self: end;
 }
 
 .rrr-result-breakdown {
@@ -1013,7 +1026,7 @@ footer {
 
 .melding-output-list {
   max-height: 260px;
-  overflow: auto;
+  overflow: visible;
   border-top: 1px solid rgba(148, 163, 184, 0.12);
 }
 

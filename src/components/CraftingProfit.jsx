@@ -7,19 +7,27 @@ import {
   getRecipe,
 } from '../utils/craftingProfit';
 
-export default function CraftingProfit({ averageQualities, days, history, itemId, quality, region }) {
+export default function CraftingProfit({
+  averageQualities,
+  days,
+  history,
+  itemId,
+  locations = [],
+  quality,
+  region,
+}) {
   const recipe = getRecipe(itemId);
   const [resourceHistory, setResourceHistory] = useState([]);
   const [status, setStatus] = useState(recipe ? 'loading' : 'no-recipe');
 
   useEffect(() => {
-    if (!recipe) return undefined;
+    if (!recipe || history.length === 0 || locations.length === 0) return undefined;
     const controller = new AbortController();
     setStatus('loading');
     fetchMultiHistory(
       recipe.resources.map((resource) => resource.itemId),
       region,
-      [],
+      locations,
       controller.signal,
     ).then((data) => {
       setResourceHistory(data);
@@ -28,15 +36,16 @@ export default function CraftingProfit({ averageQualities, days, history, itemId
       if (error.name !== 'AbortError') setStatus('error');
     });
     return () => controller.abort();
-  }, [itemId, region]);
+  }, [itemId, region, history.length, locations.join('|')]);
 
   const prices = useMemo(
-    () => getNormalQualityAveragePrices(resourceHistory, days),
-    [resourceHistory, days],
+    () => getNormalQualityAveragePrices(resourceHistory, days, Date.now(), locations),
+    [resourceHistory, days, locations.join('|')],
   );
   const outputPrice = getCraftedItemAveragePrice(history, {
     averageQualities,
     days,
+    locations,
     quality,
   });
   const result = calculateBreakEvenRrr({ recipe, prices, outputPrice });
@@ -49,7 +58,7 @@ export default function CraftingProfit({ averageQualities, days, history, itemId
 
   return (
     <span className="crafting-profit">
-      <span className="crafting-profit-indicator has-tooltip" data-tooltip="The minimum resource return rate needed for average crafted value to cover the full material cost.">
+      <span className="crafting-profit-indicator has-tooltip" data-tooltip="Break-even RRR: the return rate needed so this item's average sale price covers its ingredient cost in the visible cities.">
         {label}
       </span>
     </span>

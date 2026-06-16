@@ -34,8 +34,7 @@ export function calculateScenario(scenario) {
   const baseBonus = getBaseProductionBonus(scenario);
   const totalBonus = baseBonus
     + (scenario.focus ? 59 : 0)
-    + (Number(scenario.dailyBonus) || 0)
-    + (Number(scenario.extraBonus) || 0);
+    + (Number(scenario.dailyBonus) || 0);
 
   return {
     baseBonus,

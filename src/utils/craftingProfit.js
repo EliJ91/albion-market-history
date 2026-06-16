@@ -5,12 +5,14 @@ export function getRecipe(itemId) {
   return recipes[itemId] || null;
 }
 
-export function getNormalQualityAveragePrices(history, days = 28, now = Date.now()) {
+export function getNormalQualityAveragePrices(history, days = 28, now = Date.now(), locations = []) {
   const cutoff = now - Number(days) * 24 * 60 * 60 * 1000;
+  const selectedLocations = new Set(locations);
   const totals = new Map();
 
   for (const entry of history) {
     if (Number(entry.quality) !== 1 || !entry.item_id) continue;
+    if (selectedLocations.size > 0 && !selectedLocations.has(entry.location)) continue;
     const total = totals.get(entry.item_id) || { count: 0, value: 0 };
     for (const point of entry.data || []) {
       if (new Date(point.timestamp).getTime() < cutoff) continue;
@@ -32,16 +34,19 @@ export function getCraftedItemAveragePrice(
   {
     averageQualities = false,
     days = 28,
+    locations = [],
     now = Date.now(),
     quality = 1,
   } = {},
 ) {
   const cutoff = now - Number(days) * 24 * 60 * 60 * 1000;
+  const selectedLocations = new Set(locations);
   let count = 0;
   let value = 0;
 
   for (const entry of history) {
     if (!averageQualities && Number(entry.quality) !== Number(quality)) continue;
+    if (selectedLocations.size > 0 && !selectedLocations.has(entry.location)) continue;
     for (const point of entry.data || []) {
       if (new Date(point.timestamp).getTime() < cutoff) continue;
       const itemCount = Number(point.item_count) || 0;

@@ -8,7 +8,6 @@ const initialScenario = {
   customBonus: 0,
   focus: false,
   dailyBonus: 0,
-  extraBonus: 0,
 };
 
 function ScenarioEditor({ label, scenario, onChange }) {
@@ -20,10 +19,10 @@ function ScenarioEditor({ label, scenario, onChange }) {
     <section className="rrr-scenario">
       <div className="rrr-scenario-heading">
         <h2>{label}</h2>
-        <strong className="has-tooltip" data-tooltip="The percentage of crafting materials expected to be returned.">{result.rrr.toFixed(1)}% RRR</strong>
+        <strong className="has-tooltip" data-tooltip="RRR is the share of normal materials you expect back after crafting.">{result.rrr.toFixed(1)}% RRR</strong>
       </div>
 
-      <label className="has-tooltip" data-tooltip="The location preset that supplies the base production bonus.">
+      <label className="has-tooltip" data-tooltip="Pick where you craft. This sets the starting production bonus.">
         Location / bonus type
         <select value={scenario.location} onChange={(event) => onChange({ location: event.target.value })}>
           {Object.entries(LOCATION_PRESETS).map(([value, option]) => (
@@ -32,54 +31,53 @@ function ScenarioEditor({ label, scenario, onChange }) {
         </select>
       </label>
 
-      {preset.hideoutSpecialized && (
-        <label className="has-tooltip" data-tooltip="Higher-quality zones increase specialized hideout crafting bonuses.">
-          Zone quality
-          <select value={scenario.zoneQuality} onChange={(event) => onChange({ zoneQuality: Number(event.target.value) })}>
-            {[1, 2, 3, 4, 5, 6].map((quality) => <option key={quality} value={quality}>Quality {quality}</option>)}
-          </select>
-        </label>
-      )}
-
-      {isHideout && (
-        <label className="has-tooltip" data-tooltip="Hideout power increases its general and specialized crafting bonuses.">
+      <div className="rrr-control-row">
+        {isHideout && (
+        <label className="rrr-field has-tooltip" data-tooltip="A powered hideout gives more crafting bonus. Higher level means more RRR.">
           Hideout power level
           <select value={scenario.powerLevel} onChange={(event) => onChange({ powerLevel: Number(event.target.value) })}>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => <option key={level} value={level}>Level {level}</option>)}
           </select>
         </label>
-      )}
+        )}
+
+        {preset.hideoutSpecialized && (
+        <label className="rrr-field has-tooltip" data-tooltip="For specialized hideout crafting, better zones add more bonus. Quality 6 is best.">
+          Zone quality
+          <select value={scenario.zoneQuality} onChange={(event) => onChange({ zoneQuality: Number(event.target.value) })}>
+            {[1, 2, 3, 4, 5, 6].map((quality) => <option key={quality} value={quality}>Quality {quality}</option>)}
+          </select>
+        </label>
+        )}
+      </div>
 
       {scenario.location === 'custom' && (
-        <label className="has-tooltip" data-tooltip="Enter a base production bonus instead of using a preset.">
+        <label className="has-tooltip" data-tooltip="Use this when you already know the exact production bonus.">
           Base production bonus %
           <input min="0" step="0.01" type="number" value={scenario.customBonus} onChange={(event) => onChange({ customBonus: event.target.value })} />
         </label>
       )}
 
-      <label className="has-tooltip" data-tooltip="A temporary daily activity bonus added to production bonus.">
-        Daily production bonus
-        <select value={scenario.dailyBonus} onChange={(event) => onChange({ dailyBonus: Number(event.target.value) })}>
-          <option value="0">None</option>
-          <option value="10">10%</option>
-          <option value="20">20%</option>
-        </select>
-      </label>
+      <div className="rrr-control-row">
+        <label className="rrr-field has-tooltip" data-tooltip="Daily activity bonuses add 10% or 20% production bonus for specific items.">
+          Daily production bonus
+          <select value={scenario.dailyBonus} onChange={(event) => onChange({ dailyBonus: Number(event.target.value) })}>
+            <option value="0">None</option>
+            <option value="10">10%</option>
+            <option value="20">20%</option>
+          </select>
+        </label>
 
-      <label className="has-tooltip" data-tooltip="Any additional production bonus not covered by the other controls.">
-        Other production bonus %
-        <input min="0" step="0.01" type="number" value={scenario.extraBonus} onChange={(event) => onChange({ extraBonus: event.target.value })} />
-      </label>
-
-      <label className="checkbox-control has-tooltip" data-tooltip="Crafting focus adds 59 percentage points to production bonus.">
-        <input checked={scenario.focus} type="checkbox" onChange={(event) => onChange({ focus: event.target.checked })} />
-        Use focus (+59%)
-      </label>
+        <label className="checkbox-control rrr-focus-control has-tooltip" data-tooltip="Focus adds 59 production bonus before RRR is calculated.">
+          <input checked={scenario.focus} type="checkbox" onChange={(event) => onChange({ focus: event.target.checked })} />
+          Use focus (+59%)
+        </label>
+      </div>
 
       <div className="rrr-result-breakdown">
-        <span className="has-tooltip" data-tooltip="Production bonus supplied by the selected location, zone, and hideout power.">Base bonus <strong>{result.baseBonus.toFixed(2)}%</strong></span>
-        <span className="has-tooltip" data-tooltip="Base bonus plus focus, daily bonus, and other bonus.">Total bonus <strong>{result.totalBonus.toFixed(2)}%</strong></span>
-        <span className="has-tooltip" data-tooltip="Expected materials consumed after returns when starting with 100.">Resources used per 100 <strong>{(100 - result.rrr).toFixed(1)}</strong></span>
+        <span className="has-tooltip" data-tooltip="Production bonus from the selected place before focus or daily bonuses.">Base bonus <strong>{result.baseBonus.toFixed(2)}%</strong></span>
+        <span className="has-tooltip" data-tooltip="Base bonus plus focus and daily bonus. This number becomes RRR.">Total bonus <strong>{result.totalBonus.toFixed(2)}%</strong></span>
+        <span className="has-tooltip" data-tooltip="If you craft with 100 materials, this is how many are actually spent after returns.">Resources used per 100 <strong>{(100 - result.rrr).toFixed(1)}</strong></span>
       </div>
     </section>
   );
@@ -116,11 +114,11 @@ export default function RrrCalculator({ onClose, standalone = false }) {
           </div>
         </header>
 
-        <p className="rrr-intro">Compare production bonuses using Albion's formula: RRR = 1 - 1 / (1 + production bonus / 100).</p>
+        <p className="rrr-intro">Compare production bonuses using Albion's formula. Zone quality is included for specialized hideout crafting.</p>
 
         <div className="rrr-comparison-summary">
-          <span className="has-tooltip" data-tooltip="The gap between Scenario A and Scenario B resource return rates.">Difference</span>
-          <strong className="has-tooltip" data-tooltip="How many percentage points separate the two return rates.">{difference.toFixed(1)} percentage points</strong>
+          <span className="has-tooltip" data-tooltip="How far apart the two RRR results are.">Difference</span>
+          <strong className="has-tooltip" data-tooltip="A percentage-point gap, not extra silver or item value.">{difference.toFixed(1)} percentage points</strong>
           <span>{results[0].rrr === results[1].rrr ? 'Both scenarios return the same amount.' : `Scenario ${results[0].rrr > results[1].rrr ? 'A' : 'B'} returns more resources.`}</span>
         </div>
 

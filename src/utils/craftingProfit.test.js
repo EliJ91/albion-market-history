@@ -18,6 +18,7 @@ describe('crafting profitability', () => {
   it('calculates normal-quality volume-weighted ingredient averages', () => {
     const prices = getNormalQualityAveragePrices([{
       item_id: 'T4_METALBAR',
+      location: 'Caerleon',
       quality: 1,
       data: [
         { timestamp: '2026-06-08T00:00:00', avg_price: 100, item_count: 1 },
@@ -26,6 +27,41 @@ describe('crafting profitability', () => {
     }], 7, new Date('2026-06-09T12:00:00').getTime());
 
     expect(prices.get('T4_METALBAR')).toBe(175);
+  });
+
+  it('filters ingredient and crafted averages by visible locations', () => {
+    const ingredientPrices = getNormalQualityAveragePrices([
+      {
+        item_id: 'T4_METALBAR',
+        location: 'Caerleon',
+        quality: 1,
+        data: [{ timestamp: '2026-06-09T00:00:00', avg_price: 100, item_count: 1 }],
+      },
+      {
+        item_id: 'T4_METALBAR',
+        location: 'Bridgewatch',
+        quality: 1,
+        data: [{ timestamp: '2026-06-09T00:00:00', avg_price: 500, item_count: 1 }],
+      },
+    ], 7, new Date('2026-06-09T12:00:00').getTime(), ['Caerleon']);
+    const craftedPrice = getCraftedItemAveragePrice([
+      {
+        location: 'Caerleon',
+        quality: 1,
+        data: [{ timestamp: '2026-06-09T00:00:00', avg_price: 200, item_count: 1 }],
+      },
+      {
+        location: 'Bridgewatch',
+        quality: 1,
+        data: [{ timestamp: '2026-06-09T00:00:00', avg_price: 800, item_count: 1 }],
+      },
+    ], {
+      locations: ['Caerleon'],
+      now: new Date('2026-06-09T12:00:00').getTime(),
+    });
+
+    expect(ingredientPrices.get('T4_METALBAR')).toBe(100);
+    expect(craftedPrice).toBe(200);
   });
 
   it('finds the minimum RRR while keeping artifacts fully consumed', () => {
@@ -52,10 +88,12 @@ describe('crafting profitability', () => {
   it('uses all item qualities when averages are enabled', () => {
     const history = [
       {
+        location: 'Caerleon',
         quality: 1,
         data: [{ timestamp: '2026-06-09T00:00:00', avg_price: 100, item_count: 1 }],
       },
       {
+        location: 'Caerleon',
         quality: 5,
         data: [{ timestamp: '2026-06-09T00:00:00', avg_price: 500, item_count: 3 }],
       },

@@ -135,7 +135,7 @@ describe('App', () => {
     expect(screen.getAllByDisplayValue('2 weeks')).toHaveLength(1);
     expect(screen.getAllByDisplayValue('Volume')).toHaveLength(1);
     expect(screen.getAllByText('Show Averages')[1].closest('label').querySelector('input')).toBeChecked();
-    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(12));
+    await waitFor(() => expect(fetch).toHaveBeenCalledTimes(8));
   });
 
   it('reorders saved item cards by dragging them', () => {

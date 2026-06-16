@@ -11,17 +11,17 @@ describe('resource return calculations', () => {
     expect(getBaseProductionBonus({ location: 'hideoutGeneral', powerLevel: 9 })).toBe(26);
     expect(getBaseProductionBonus({ location: 'hideoutSpecialized', zoneQuality: 1, powerLevel: 9 })).toBe(57);
     expect(getBaseProductionBonus({ location: 'hideoutSpecialized', zoneQuality: 6, powerLevel: 9 })).toBe(82);
+    expect(getBaseProductionBonus({ location: 'hideoutSpecialized', zoneQuality: 3, powerLevel: 1 })).toBe(11);
   });
 
-  it('adds focus, daily, and other bonuses before calculating RRR', () => {
+  it('adds focus and daily bonuses before calculating RRR', () => {
     const result = calculateScenario({
       location: 'royalCity',
       focus: true,
       dailyBonus: 10,
-      extraBonus: 5,
     });
 
-    expect(result.totalBonus).toBe(92);
-    expect(result.rrr).toBeCloseTo(47.916, 2);
+    expect(result.totalBonus).toBe(87);
+    expect(result.rrr).toBeCloseTo(46.524, 2);
   });
 });
