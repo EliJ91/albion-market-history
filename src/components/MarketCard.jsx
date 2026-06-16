@@ -9,6 +9,7 @@ import { fetchHistory } from '../services/albionApi';
 import { getEnchantment, getItemValue, getTier } from '../utils/itemCatalog';
 import {
   filterHistory,
+  getEstimatedMarketValue,
   getLocations,
   getRecommendedLocation,
 } from '../utils/marketData';
@@ -67,6 +68,10 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
     () => availableChartHistory.filter((entry) => selectedLocations.includes(entry.location)),
     [availableChartHistory, selectedLocations.join('|')],
   );
+  const estimatedMarketValue = useMemo(
+    () => getEstimatedMarketValue(availableChartHistory),
+    [availableChartHistory],
+  );
   const recommendedLocation = useMemo(
     () => getRecommendedLocation(chartHistory, card.metric),
     [chartHistory, card.metric],
@@ -115,7 +120,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
           </div>
           <div className="item-meta">
             <span>{REGIONS[card.region]?.label || card.region}</span>
-            <span>Item Value {itemValue == null ? 'unavailable' : silver.format(itemValue)}</span>
+            <span className="has-tooltip" data-tooltip="Estimated Market Value: the volume-weighted average price from all city price data for this item.">EMV {estimatedMarketValue == null ? 'unavailable' : silver.format(Math.round(estimatedMarketValue))}</span>
             {lastUpdated && (
               <span>
                 Refreshed {lastUpdated.toLocaleTimeString([], {

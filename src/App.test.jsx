@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 
@@ -20,6 +20,7 @@ describe('App', () => {
     expect(screen.getByText('Add an item to begin')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Compare RRR' })).toHaveClass('navigation-button');
     expect(screen.getByRole('button', { name: 'Artifact Melding' })).toHaveClass('navigation-button');
+    expect(screen.getByRole('button', { name: 'Crafting Planner' })).toHaveClass('navigation-button');
   });
 
   it('opens the artifact melding and salvage profitability calculator with city filtering', async () => {
@@ -72,6 +73,59 @@ describe('App', () => {
       'data-tooltip',
       expect.stringContaining('Production bonus'),
     );
+  });
+
+  it('opens the crafting planner, calculates RRR, and manages craft entries', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Crafting Planner' }));
+
+    const dialog = screen.getByRole('dialog', { name: 'Crafting Planner' });
+    expect(dialog).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Calculate' }));
+    const picker = screen.getByRole('dialog', { name: 'Choose RRR' });
+    expect(within(picker).getByRole('heading', { name: 'Scenario A' })).toBeInTheDocument();
+    fireEvent.click(within(picker).getByRole('button', { name: 'Use 1.0% RRR' }));
+    expect(within(dialog).getByLabelText('RRR %')).toHaveValue(1);
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Calculate' }));
+    const changedPicker = screen.getByRole('dialog', { name: 'Choose RRR' });
+    fireEvent.change(within(changedPicker).getByLabelText('Hideout power level'), { target: { value: '9' } });
+    fireEvent.change(within(changedPicker).getByLabelText('Zone quality'), { target: { value: '6' } });
+    fireEvent.click(within(changedPicker).getByRole('button', { name: 'Close' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Calculate' }));
+    const reopenedPicker = screen.getByRole('dialog', { name: 'Choose RRR' });
+    expect(within(reopenedPicker).getByLabelText('Hideout power level')).toHaveDisplayValue('Level 9');
+    expect(within(reopenedPicker).getByLabelText('Zone quality')).toHaveDisplayValue('Quality 6');
+    fireEvent.click(within(reopenedPicker).getByRole('button', { name: 'Close' }));
+
+    fireEvent.change(within(dialog).getByLabelText('Item'), { target: { value: "Adept's Broadsword" } });
+    fireEvent.click(within(dialog).getByRole('option', { name: /Adept's BroadswordT4_MAIN_SWORD$/ }));
+    fireEvent.change(within(dialog).getByLabelText('Amount to craft'), { target: { value: '3' } });
+    fireEvent.change(within(dialog).getByLabelText('RRR %'), { target: { value: '25' } });
+    expect(within(dialog).getByRole('heading', { name: 'Current craft breakdown' })).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Current craft material breakdown')).toBeInTheDocument();
+    expect(within(dialog).queryByText('Silver cost')).not.toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add' }));
+
+    expect(within(dialog).getByRole('heading', { name: 'Items to bring' })).toBeInTheDocument();
+    expect(within(dialog).queryByRole('heading', { name: 'Total required materials' })).not.toBeInTheDocument();
+    expect(within(dialog).getByText('Steel Bar')).toBeInTheDocument();
+    expect(within(dialog).getByText('Worked Leather')).toBeInTheDocument();
+    expect(within(dialog).getAllByText('40').length).toBeGreaterThan(0);
+    expect(within(dialog).getAllByText('20').length).toBeGreaterThan(0);
+    expect(within(dialog).queryByText(/Silver:/)).not.toBeInTheDocument();
+    expect(within(dialog).queryByText('Silver cost')).not.toBeInTheDocument();
+    expect(localStorage.getItem('albion-market-history:crafting-planner:v1')).toContain('T4_MAIN_SWORD');
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Crafting Planner' }));
+    const reopenedDialog = screen.getByRole('dialog', { name: 'Crafting Planner' });
+    expect(within(reopenedDialog).getByRole('heading', { name: 'Items to bring' })).toBeInTheDocument();
+    expect(within(reopenedDialog).getByText("Adept's Broadsword")).toBeInTheDocument();
+
+    fireEvent.click(within(reopenedDialog).getByRole('button', { name: 'Clear List' }));
+    expect(within(reopenedDialog).queryByRole('heading', { name: 'Items to bring' })).not.toBeInTheDocument();
+    expect(localStorage.getItem('albion-market-history:crafting-planner:v1')).toBe('[]');
   });
 
   it('adds a chart, fetches live data, and saves only chart preferences', async () => {

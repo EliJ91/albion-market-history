@@ -3,6 +3,7 @@ import SearchPanel from './components/SearchPanel';
 import MarketCard from './components/MarketCard';
 import RrrCalculator from './components/RrrCalculator';
 import MeldingCalculator from './components/MeldingCalculator';
+import MaterialsCalculator from './components/MaterialsCalculator';
 import { STORAGE_KEY } from './config';
 import { buildItemId, getItemName } from './utils/itemCatalog';
 
@@ -35,11 +36,15 @@ export default function App() {
   const [draggingCardId, setDraggingCardId] = useState(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [meldingOpen, setMeldingOpen] = useState(false);
+  const [materialsOpen, setMaterialsOpen] = useState(false);
   const [standaloneCalculator, setStandaloneCalculator] = useState(
     () => window.location.hash === '#rrr-calculator',
   );
   const [standaloneMelding, setStandaloneMelding] = useState(
     () => window.location.hash === '#melding-calculator',
+  );
+  const [standaloneMaterials, setStandaloneMaterials] = useState(
+    () => window.location.hash === '#materials-calculator',
   );
 
   useEffect(() => {
@@ -50,6 +55,7 @@ export default function App() {
     const updateRoute = () => {
       setStandaloneCalculator(window.location.hash === '#rrr-calculator');
       setStandaloneMelding(window.location.hash === '#melding-calculator');
+      setStandaloneMaterials(window.location.hash === '#materials-calculator');
     };
     window.addEventListener('hashchange', updateRoute);
     return () => window.removeEventListener('hashchange', updateRoute);
@@ -97,6 +103,7 @@ export default function App() {
 
   if (standaloneCalculator) return <RrrCalculator standalone />;
   if (standaloneMelding) return <MeldingCalculator standalone />;
+  if (standaloneMaterials) return <MaterialsCalculator standalone />;
 
   return (
     <>
@@ -106,6 +113,7 @@ export default function App() {
           <h1>Market History</h1>
         </div>
         <div className="topbar-actions">
+          <button className="icon-button navigation-button" type="button" onClick={() => setMaterialsOpen(true)}>Crafting Planner</button>
           <button className="icon-button navigation-button" type="button" onClick={() => setMeldingOpen(true)}>Artifact Melding</button>
           <button className="icon-button navigation-button" type="button" onClick={() => setCalculatorOpen(true)}>Compare RRR</button>
         </div>
@@ -143,6 +151,7 @@ export default function App() {
 
       {calculatorOpen && <RrrCalculator onClose={() => setCalculatorOpen(false)} />}
       {meldingOpen && <MeldingCalculator onClose={() => setMeldingOpen(false)} />}
+      {materialsOpen && <MaterialsCalculator onClose={() => setMaterialsOpen(false)} />}
     </>
   );
 }

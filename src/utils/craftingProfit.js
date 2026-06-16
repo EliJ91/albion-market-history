@@ -96,3 +96,36 @@ export function calculateBreakEvenRrr({ recipe, prices, outputPrice }) {
     totalCost,
   };
 }
+
+export function calculateRequiredMaterials({ amount, recipe, rrr }) {
+  if (!recipe) return null;
+
+  const targetAmount = Math.max(1, Math.ceil(Number(amount) || 1));
+  const safeRrr = Math.max(0, Math.min(100, Number(rrr) || 0));
+  const craftsRequired = Math.ceil(targetAmount / recipe.amountCrafted);
+  const amountProduced = craftsRequired * recipe.amountCrafted;
+  const resources = recipe.resources.map((resource) => {
+    const gross = resource.count * craftsRequired;
+    const returned = resource.returnableCount * Math.max(0, craftsRequired - 1) * (safeRrr / 100);
+    const net = Math.max(0, gross - returned);
+
+    return {
+      ...resource,
+      gross,
+      name: getItemName(resource.itemId),
+      net,
+      required: Math.ceil(net),
+      returned,
+    };
+  });
+
+  return {
+    amountProduced,
+    craftsRequired,
+    recipe,
+    resources,
+    rrr: safeRrr,
+    silver: recipe.silver * craftsRequired,
+    targetAmount,
+  };
+}

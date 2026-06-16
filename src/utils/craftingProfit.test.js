@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   calculateBreakEvenRrr,
+  calculateRequiredMaterials,
   getCraftedItemAveragePrice,
   getNormalQualityAveragePrices,
   getRecipe,
@@ -83,6 +84,63 @@ describe('crafting profitability', () => {
     expect(result.breakEvenRrr).toBeCloseTo(10);
     expect(result.effectiveCost).toBeCloseTo(140);
     expect(result.profit).toBeCloseTo(0);
+  });
+
+  it('calculates starting materials using only returns from earlier crafts', () => {
+    const result = calculateRequiredMaterials({
+      amount: 3,
+      recipe: getRecipe('T4_MAIN_SWORD'),
+      rrr: 25,
+    });
+
+    expect(result.craftsRequired).toBe(3);
+    expect(result.amountProduced).toBe(3);
+    expect(result.resources).toEqual([
+      expect.objectContaining({
+        itemId: 'T4_METALBAR',
+        gross: 48,
+        returned: 8,
+        required: 40,
+      }),
+      expect.objectContaining({
+        itemId: 'T4_LEATHER',
+        gross: 24,
+        returned: 4,
+        required: 20,
+      }),
+    ]);
+  });
+
+  it('requires a full first craft before any returns are available', () => {
+    const oneCraft = calculateRequiredMaterials({
+      amount: 1,
+      recipe: {
+        amountCrafted: 1,
+        silver: 0,
+        resources: [{ itemId: 'PLANKS', count: 20, returnableCount: 20 }],
+      },
+      rrr: 38,
+    });
+    const twoCrafts = calculateRequiredMaterials({
+      amount: 2,
+      recipe: {
+        amountCrafted: 1,
+        silver: 0,
+        resources: [{ itemId: 'PLANKS', count: 20, returnableCount: 20 }],
+      },
+      rrr: 38,
+    });
+
+    expect(oneCraft.resources[0]).toEqual(expect.objectContaining({
+      gross: 20,
+      returned: 0,
+      required: 20,
+    }));
+    expect(twoCrafts.resources[0]).toEqual(expect.objectContaining({
+      gross: 40,
+      returned: 7.6,
+      required: 33,
+    }));
   });
 
   it('uses all item qualities when averages are enabled', () => {

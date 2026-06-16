@@ -71,7 +71,10 @@ describe('MarketCard', () => {
     render(<StatefulCard />);
 
     expect(await screen.findByText('Recommended: Caerleon')).toBeInTheDocument();
-    expect(screen.getByText('Item Value 384')).toBeInTheDocument();
+    expect(screen.getByText('EMV 233')).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('Estimated Market Value'),
+    );
     expect(screen.getByText('Reroll?')).toBeInTheDocument();
     expect(screen.getByText(/Min\. RRR:/)).toHaveAttribute(
       'data-tooltip',

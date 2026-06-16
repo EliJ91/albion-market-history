@@ -3,6 +3,7 @@ import {
   combineQualities,
   filterHistory,
   getCityColor,
+  getEstimatedMarketValue,
   getLocationLabel,
   getLocations,
   getRecommendedLocation,
@@ -123,5 +124,9 @@ describe('market data transforms', () => {
     ];
 
     expect(getRecommendedLocation(recommendationHistory, 'avg_price')).toBe('Valuable City');
+  });
+
+  it('calculates EMV from all city price data using item volume', () => {
+    expect(getEstimatedMarketValue(history)).toBeCloseTo(216.67);
   });
 });

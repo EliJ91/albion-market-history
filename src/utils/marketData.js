@@ -146,3 +146,20 @@ export function getRecommendedLocation(history, metric = 'avg_price') {
 
   return ranked[0]?.location || null;
 }
+
+export function getEstimatedMarketValue(history) {
+  const totals = history.reduce(
+    (result, entry) => {
+      for (const point of entry.data || []) {
+        const itemCount = Number(point.item_count) || 0;
+        const averagePrice = Number(point.avg_price) || 0;
+        result.itemCount += itemCount;
+        result.weightedPrice += averagePrice * itemCount;
+      }
+      return result;
+    },
+    { itemCount: 0, weightedPrice: 0 },
+  );
+
+  return totals.itemCount > 0 ? totals.weightedPrice / totals.itemCount : null;
+}

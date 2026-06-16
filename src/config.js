@@ -41,3 +41,4 @@ export const SPECIAL_MARKET_LOCATIONS = [
 ];
 
 export const STORAGE_KEY = 'albion-market-history:cards:v2';
+export const CRAFTING_PLANNER_STORAGE_KEY = 'albion-market-history:crafting-planner:v1';

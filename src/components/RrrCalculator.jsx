@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { calculateScenario, LOCATION_PRESETS } from '../utils/resourceReturn';
 
-const initialScenario = {
+export const initialScenario = {
   location: 'hideoutSpecialized',
   zoneQuality: 1,
   powerLevel: 1,
@@ -10,7 +10,7 @@ const initialScenario = {
   dailyBonus: 0,
 };
 
-function ScenarioEditor({ label, scenario, onChange }) {
+export function ScenarioEditor({ label, scenario, onChange, onUseRrr }) {
   const result = useMemo(() => calculateScenario(scenario), [scenario]);
   const preset = LOCATION_PRESETS[scenario.location];
   const isHideout = preset.hideoutGeneral || preset.hideoutSpecialized;
@@ -19,7 +19,18 @@ function ScenarioEditor({ label, scenario, onChange }) {
     <section className="rrr-scenario">
       <div className="rrr-scenario-heading">
         <h2>{label}</h2>
-        <strong className="has-tooltip" data-tooltip="RRR is the share of normal materials you expect back after crafting.">{result.rrr.toFixed(1)}% RRR</strong>
+        {onUseRrr ? (
+          <button
+            className="rrr-use-button has-tooltip"
+            data-tooltip="Use this calculated RRR in the crafting planner."
+            type="button"
+            onClick={() => onUseRrr(result.rrr)}
+          >
+            Use {result.rrr.toFixed(1)}% RRR
+          </button>
+        ) : (
+          <strong className="has-tooltip" data-tooltip="RRR is the share of normal materials you expect back after crafting.">{result.rrr.toFixed(1)}% RRR</strong>
+        )}
       </div>
 
       <label className="has-tooltip" data-tooltip="Pick where you craft. This sets the starting production bonus.">
