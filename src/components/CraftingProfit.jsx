@@ -11,6 +11,7 @@ export default function CraftingProfit({
   averageQualities,
   days,
   history,
+  ignoredPointKeys = new Set(),
   itemId,
   locations = [],
   quality,
@@ -45,6 +46,7 @@ export default function CraftingProfit({
   const outputPrice = getCraftedItemAveragePrice(history, {
     averageQualities,
     days,
+    ignoredPointKeys,
     locations,
     quality,
   });
@@ -58,7 +60,7 @@ export default function CraftingProfit({
 
   return (
     <span className="crafting-profit">
-      <span className="crafting-profit-indicator has-tooltip" data-tooltip="Break-even RRR: the return rate needed so this item's average sale price covers its ingredient cost in the visible cities.">
+      <span className="crafting-profit-indicator has-tooltip" data-tooltip="Break-even RRR: the return rate needed so this item's average sale price from included chart points covers its ingredient cost in the visible cities.">
         {label}
       </span>
     </span>

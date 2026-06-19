@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   combineQualities,
   filterHistory,
+  filterIgnoredHistoryPoints,
   getCityColor,
   getEstimatedMarketValue,
+  getHistoryPointKey,
   getLocationLabel,
   getLocations,
   getRecommendedLocation,
@@ -128,5 +130,17 @@ describe('market data transforms', () => {
 
   it('calculates EMV from all city price data using item volume', () => {
     expect(getEstimatedMarketValue(history)).toBeCloseTo(216.67);
+  });
+
+  it('removes ignored points without changing the source history', () => {
+    const ignoredPointKeys = new Set([
+      getHistoryPointKey('Caerleon', '2026-06-05T00:00:00'),
+    ]);
+    const filtered = filterIgnoredHistoryPoints(history, ignoredPointKeys);
+
+    expect(filtered.find((entry) => entry.location === 'Caerleon').data).toEqual([
+      { timestamp: '2026-06-01T00:00:00', avg_price: 100, item_count: 10 },
+    ]);
+    expect(history[0].data).toHaveLength(2);
   });
 });

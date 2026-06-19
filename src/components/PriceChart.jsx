@@ -8,7 +8,7 @@ import {
 import { useEffect, useRef } from 'react';
 import { Line } from 'react-chartjs-2';
 import { SPECIAL_MARKET_LOCATIONS } from '../config';
-import { getCityColor, getLocationLabel } from '../utils/marketData';
+import { getCityColor, getHistoryPointKey, getLocationLabel } from '../utils/marketData';
 
 ChartJS.register(LineElement, PointElement, LinearScale, Tooltip);
 
@@ -27,11 +27,13 @@ function formatDate(value) {
 
 export default function PriceChart({
   history,
+  ignoredPointKeys = new Set(),
   locations,
   locationsWithData,
   metric,
   recommendedLocation,
   onToggleLocation,
+  onTogglePoint,
   selectedLocations,
 }) {
   const chartRef = useRef(null);
@@ -62,16 +64,25 @@ export default function PriceChart({
 
     return {
       label: entry.location,
-      data: entry.data.map((point) => ({
-        x: new Date(point.timestamp).getTime(),
-        y: point[metric],
-        avgPrice: point.avg_price,
-        itemCount: point.item_count,
-      })),
+      data: entry.data.map((point) => {
+        const pointKey = getHistoryPointKey(entry.location, point.timestamp);
+        return {
+          x: new Date(point.timestamp).getTime(),
+          y: point[metric],
+          avgPrice: point.avg_price,
+          ignored: ignoredPointKeys.has(pointKey),
+          itemCount: point.item_count,
+          pointKey,
+        };
+      }),
       borderColor: color,
       backgroundColor: color,
       borderWidth: 2,
-      pointRadius: 1.5,
+      pointBackgroundColor: (context) => context.raw?.ignored ? '#94a3b8' : color,
+      pointBorderColor: (context) => context.raw?.ignored ? '#475569' : color,
+      pointBorderWidth: (context) => context.raw?.ignored ? 2 : 1,
+      pointHitRadius: 8,
+      pointRadius: (context) => context.raw?.ignored ? 4 : 2.5,
       pointHoverRadius: 5,
       tension: 0.2,
     };
@@ -83,6 +94,27 @@ export default function PriceChart({
     parsing: false,
     responsive: true,
     interaction: { intersect: false, mode: 'nearest' },
+    onHover: (event, _elements, chart) => {
+      const hoveredPoints = chart.getElementsAtEventForMode(
+        event,
+        'nearest',
+        { intersect: true },
+        false,
+      );
+      chart.canvas.style.cursor = hoveredPoints.length ? 'pointer' : 'crosshair';
+    },
+    onClick: (event, elements, chart) => {
+      const clickedElements = chart.getElementsAtEventForMode?.(
+        event,
+        'nearest',
+        { intersect: true },
+        false,
+      ) || elements;
+      const clicked = clickedElements[0];
+      if (!clicked) return;
+      const point = chart.data.datasets[clicked.datasetIndex]?.data[clicked.index];
+      if (point?.pointKey) onTogglePoint?.(point.pointKey);
+    },
     plugins: {
       legend: {
         display: false,
@@ -92,7 +124,8 @@ export default function PriceChart({
           title: (items) => formatDate(items[0].raw.x),
           label: (context) => {
             const point = context.raw;
-            return `${getLocationLabel(context.dataset.label)}: ${point.avgPrice.toLocaleString()} silver, ${point.itemCount.toLocaleString()} items`;
+            const status = point.ignored ? 'Ignored, click to include' : 'Included, click to ignore';
+            return `${getLocationLabel(context.dataset.label)}: ${point.avgPrice.toLocaleString()} silver, ${point.itemCount.toLocaleString()} items (${status})`;
           },
         },
       },
@@ -167,6 +200,7 @@ export default function PriceChart({
         <div className="chart-legend-row chart-legend-special-row">
           {specialLocations.map(renderLocation)}
         </div>
+        <p className="chart-point-help">Click a plotted point to include or ignore it.</p>
       </div>
       <div className="chart-canvas" ref={chartCanvasRef}>
         {history.length > 0

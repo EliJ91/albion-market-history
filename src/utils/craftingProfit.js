@@ -1,5 +1,6 @@
 import recipes from '../data/recipes.json';
 import { getItemName } from './itemCatalog';
+import { getHistoryPointKey } from './marketData';
 
 export function getRecipe(itemId) {
   return recipes[itemId] || null;
@@ -34,6 +35,7 @@ export function getCraftedItemAveragePrice(
   {
     averageQualities = false,
     days = 28,
+    ignoredPointKeys = new Set(),
     locations = [],
     now = Date.now(),
     quality = 1,
@@ -49,6 +51,7 @@ export function getCraftedItemAveragePrice(
     if (selectedLocations.size > 0 && !selectedLocations.has(entry.location)) continue;
     for (const point of entry.data || []) {
       if (new Date(point.timestamp).getTime() < cutoff) continue;
+      if (ignoredPointKeys.has(getHistoryPointKey(entry.location, point.timestamp))) continue;
       const itemCount = Number(point.item_count) || 0;
       count += itemCount;
       value += itemCount * (Number(point.avg_price) || 0);

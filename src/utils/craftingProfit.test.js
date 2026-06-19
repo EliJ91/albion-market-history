@@ -6,6 +6,7 @@ import {
   getNormalQualityAveragePrices,
   getRecipe,
 } from './craftingProfit';
+import { getHistoryPointKey } from './marketData';
 
 describe('crafting profitability', () => {
   it('loads standard and artifact recipes with returnable flags', () => {
@@ -160,5 +161,24 @@ describe('crafting profitability', () => {
 
     expect(getCraftedItemAveragePrice(history, { quality: 1, now })).toBe(100);
     expect(getCraftedItemAveragePrice(history, { averageQualities: true, now })).toBe(400);
+  });
+
+  it('excludes ignored chart points from the crafted item average used by minimum RRR', () => {
+    const timestamp = '2026-06-09T00:00:00';
+    const history = [{
+      location: 'Caerleon',
+      quality: 1,
+      data: [
+        { timestamp, avg_price: 100, item_count: 1 },
+        { timestamp: '2026-06-08T00:00:00', avg_price: 500, item_count: 3 },
+      ],
+    }];
+    const ignoredPointKeys = new Set([getHistoryPointKey('Caerleon', timestamp)]);
+    const outputPrice = getCraftedItemAveragePrice(history, {
+      ignoredPointKeys,
+      now: new Date('2026-06-09T12:00:00').getTime(),
+    });
+
+    expect(outputPrice).toBe(500);
   });
 });

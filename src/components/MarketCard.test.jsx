@@ -11,10 +11,13 @@ vi.mock('../services/albionApi', () => ({
 
 vi.mock('./PriceChart', () => ({
   default: ({
+    history,
+    ignoredPointKeys,
     locations,
     locationsWithData,
     recommendedLocation,
     onToggleLocation,
+    onTogglePoint,
     selectedLocations,
   }) => (
     <div>
@@ -22,9 +25,19 @@ vi.mock('./PriceChart', () => ({
       <span>All cities: {locations.join(', ')}</span>
       <span>Data cities: {locationsWithData.join(', ')}</span>
       <span>Visible cities: {selectedLocations.join(', ')}</span>
+      <span>Ignored points: {ignoredPointKeys.size}</span>
       <button onClick={() => onToggleLocation(recommendedLocation)} type="button">
         Hide recommended city
       </button>
+      {history.flatMap((entry) => entry.data.map((point) => (
+        <button
+          key={`${entry.location}|${point.timestamp}`}
+          onClick={() => onTogglePoint(`${entry.location}|${point.timestamp}`)}
+          type="button"
+        >
+          Toggle {entry.location} point
+        </button>
+      )))}
     </div>
   ),
 }));
@@ -98,5 +111,39 @@ describe('MarketCard', () => {
     expect(screen.getByText(
       'Visible cities: Black Market, Bridgewatch, Lymhurst, Arthurs Rest Smugglers Network, Merlyns Rest Smugglers Network, Morganas Rest Smugglers Network',
     )).toBeInTheDocument();
+  });
+
+  it('keeps point toggles independent and updates the recommendation', async () => {
+    render(<StatefulCard />);
+
+    expect(await screen.findByText('Recommended: Caerleon')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle Caerleon point' }));
+    expect(screen.getByText('Ignored points: 1')).toBeInTheDocument();
+    expect(screen.getByText('Recommended: Bridgewatch')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle Bridgewatch point' }));
+    expect(screen.getByText('Ignored points: 2')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle Caerleon point' }));
+    expect(screen.getByText('Ignored points: 1')).toBeInTheDocument();
+    expect(screen.getByText('Recommended: Caerleon')).toBeInTheDocument();
+  });
+
+  it('resets ignored points when display, city visibility, or averages change', async () => {
+    render(<StatefulCard />);
+
+    await screen.findByText('Recommended: Caerleon');
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle Caerleon point' }));
+    expect(screen.getByText('Ignored points: 1')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Display'), { target: { value: 'item_count' } });
+    expect(screen.getByText('Ignored points: 0')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle Caerleon point' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Hide recommended city' }));
+    expect(screen.getByText('Ignored points: 0')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle Caerleon point' }));
+    fireEvent.click(screen.getByLabelText('Show Averages'));
+    expect(screen.getByText('Ignored points: 0')).toBeInTheDocument();
   });
 });

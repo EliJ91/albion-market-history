@@ -37,6 +37,23 @@ export function getLocationLabel(location) {
   return LOCATION_LABELS[location] || location;
 }
 
+export function getHistoryPointKey(location, timestamp) {
+  return `${location}|${timestamp}`;
+}
+
+export function filterIgnoredHistoryPoints(history, ignoredPointKeys = new Set()) {
+  if (ignoredPointKeys.size === 0) return history;
+
+  return history
+    .map((entry) => ({
+      ...entry,
+      data: (entry.data || []).filter((point) => (
+        !ignoredPointKeys.has(getHistoryPointKey(entry.location, point.timestamp))
+      )),
+    }))
+    .filter((entry) => entry.data.length > 0);
+}
+
 function compareLocations(left, right) {
   const leftRestOrder = REST_LOCATION_ORDER.get(left);
   const rightRestOrder = REST_LOCATION_ORDER.get(right);

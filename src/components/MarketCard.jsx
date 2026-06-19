@@ -9,6 +9,7 @@ import { fetchHistory } from '../services/albionApi';
 import { getEnchantment, getItemValue, getTier } from '../utils/itemCatalog';
 import {
   filterHistory,
+  filterIgnoredHistoryPoints,
   getEstimatedMarketValue,
   getLocations,
   getRecommendedLocation,
@@ -26,6 +27,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [ignoredPointKeys, setIgnoredPointKeys] = useState(() => new Set());
 
   useEffect(() => {
     const controller = new AbortController();
@@ -55,6 +57,19 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
     ? card.locations.filter((location) => availableLocations.includes(location))
     : availableLocations;
 
+  useEffect(() => {
+    setIgnoredPointKeys(new Set());
+  }, [
+    card.itemId,
+    card.region,
+    card.days,
+    card.quality,
+    card.metric,
+    card.averageQualities,
+    selectedLocations.join('|'),
+    refreshKey,
+  ]);
+
   const availableChartHistory = useMemo(
     () => filterHistory(history, {
       quality: card.quality,
@@ -68,13 +83,17 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
     () => availableChartHistory.filter((entry) => selectedLocations.includes(entry.location)),
     [availableChartHistory, selectedLocations.join('|')],
   );
+  const analysisHistory = useMemo(
+    () => filterIgnoredHistoryPoints(chartHistory, ignoredPointKeys),
+    [chartHistory, [...ignoredPointKeys].sort().join('|')],
+  );
   const estimatedMarketValue = useMemo(
     () => getEstimatedMarketValue(availableChartHistory),
     [availableChartHistory],
   );
   const recommendedLocation = useMemo(
-    () => getRecommendedLocation(chartHistory, card.metric),
-    [chartHistory, card.metric],
+    () => getRecommendedLocation(analysisHistory, card.metric),
+    [analysisHistory, card.metric],
   );
   const qualityAverages = useMemo(
     () => getQualityPriceAverages(history, {
@@ -89,7 +108,24 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
       ? selectedLocations.filter((current) => current !== location)
       : [...selectedLocations, location];
 
-    if (next.length > 0) onChange({ locations: next });
+    if (next.length > 0) {
+      setIgnoredPointKeys(new Set());
+      onChange({ locations: next });
+    }
+  }
+
+  function togglePoint(pointKey) {
+    setIgnoredPointKeys((current) => {
+      const next = new Set(current);
+      if (next.has(pointKey)) next.delete(pointKey);
+      else next.add(pointKey);
+      return next;
+    });
+  }
+
+  function updateCard(updates) {
+    setIgnoredPointKeys(new Set());
+    onChange(updates);
   }
 
   const tier = getTier(card.itemId);
@@ -139,6 +175,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
               averageQualities={card.averageQualities}
               days={card.days}
               history={history}
+              ignoredPointKeys={ignoredPointKeys}
               itemId={card.itemId}
               locations={selectedLocations}
               quality={card.quality}
@@ -153,7 +190,10 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
             />
           )}
           {!card.collapsed && (
-            <button className="icon-button action-icon" onClick={() => setRefreshKey((value) => value + 1)} title="Refresh data" aria-label="Refresh data" type="button">
+            <button className="icon-button action-icon" onClick={() => {
+              setIgnoredPointKeys(new Set());
+              setRefreshKey((value) => value + 1);
+            }} title="Refresh data" aria-label="Refresh data" type="button">
               ↻
             </button>
           )}
@@ -171,7 +211,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
       <div className="card-controls">
         <label>
           Range
-          <select value={card.days} onChange={(event) => onChange({ days: Number(event.target.value) })}>
+          <select value={card.days} onChange={(event) => updateCard({ days: Number(event.target.value) })}>
             {TIME_RANGES.map((range) => <option key={range.days} value={range.days}>{range.label}</option>)}
           </select>
         </label>
@@ -181,7 +221,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
           <select
             disabled={card.averageQualities}
             value={card.quality}
-            onChange={(event) => onChange({ quality: Number(event.target.value) })}
+            onChange={(event) => updateCard({ quality: Number(event.target.value) })}
           >
             {Object.entries(QUALITY_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
@@ -189,7 +229,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
 
         <label>
           Display
-          <select value={card.metric} onChange={(event) => onChange({ metric: event.target.value })}>
+          <select value={card.metric} onChange={(event) => updateCard({ metric: event.target.value })}>
             <option value="avg_price">Price</option>
             <option value="item_count">Volume</option>
           </select>
@@ -198,7 +238,7 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
         <label className="checkbox-control" title="Combine all item qualities into one average.">
           <input
             checked={card.averageQualities}
-            onChange={(event) => onChange({ averageQualities: event.target.checked })}
+            onChange={(event) => updateCard({ averageQualities: event.target.checked })}
             type="checkbox"
           />
           Show Averages
@@ -212,11 +252,13 @@ export default function MarketCard({ card, dragging, onChange, onDragEnd, onDrag
         <Suspense fallback={<div className="card-message">Preparing chart...</div>}>
           <PriceChart
             history={chartHistory}
+            ignoredPointKeys={ignoredPointKeys}
             locations={availableLocations}
             locationsWithData={availableChartHistory.map((entry) => entry.location)}
             metric={card.metric}
             recommendedLocation={recommendedLocation}
             onToggleLocation={toggleLocation}
+            onTogglePoint={togglePoint}
             selectedLocations={selectedLocations}
           />
         </Suspense>
