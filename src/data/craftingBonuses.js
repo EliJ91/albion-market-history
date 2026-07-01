@@ -2,6 +2,7 @@ export const CRAFTING_CITY_BONUSES = [
   {
     city: 'Fort Sterling',
     biome: 'Mountain',
+    biomeKey: 'mountain',
     bonuses: [
       'Raw Chicken +10%',
       'Raw Mutton +10%',
@@ -15,6 +16,7 @@ export const CRAFTING_CITY_BONUSES = [
   {
     city: 'Lymhurst',
     biome: 'Forest',
+    biomeKey: 'forest',
     bonuses: [
       'Raw Goose +10%',
       'Sword +15%',
@@ -27,6 +29,7 @@ export const CRAFTING_CITY_BONUSES = [
   {
     city: 'Bridgewatch',
     biome: 'Steppe',
+    biomeKey: 'steppe',
     bonuses: [
       'Raw Goat +10%',
       'Crossbow +15%',
@@ -39,6 +42,7 @@ export const CRAFTING_CITY_BONUSES = [
   {
     city: 'Martlock',
     biome: 'Highland',
+    biomeKey: 'highland',
     bonuses: [
       'Raw Beef +10%',
       'Axe +15%',
@@ -51,6 +55,7 @@ export const CRAFTING_CITY_BONUSES = [
   {
     city: 'Thetford',
     biome: 'Swamp',
+    biomeKey: 'swamp',
     bonuses: [
       'Raw Pork +10%',
       'Mace +15%',
@@ -62,7 +67,8 @@ export const CRAFTING_CITY_BONUSES = [
   },
   {
     city: 'Caerleon',
-    biome: 'No listed biome',
+    biome: 'No biome',
+    biomeKey: 'none',
     bonuses: [
       'Gathering Gear +15%',
       'Tool +15%',
@@ -73,7 +79,8 @@ export const CRAFTING_CITY_BONUSES = [
   },
   {
     city: 'Brecilien',
-    biome: 'No listed biome',
+    biome: 'No biome',
+    biomeKey: 'none',
     bonuses: [
       'Cape +15%',
       'Bag +15%',
@@ -82,7 +89,8 @@ export const CRAFTING_CITY_BONUSES = [
   },
   {
     city: "Arthur's Rest",
-    biome: 'No listed biome',
+    biome: 'No biome',
+    biomeKey: 'none',
     bonuses: [
       'Axe +15%',
       'Crossbow +15%',
@@ -97,7 +105,8 @@ export const CRAFTING_CITY_BONUSES = [
   },
   {
     city: "Merlyn's Rest",
-    biome: 'No listed biome',
+    biome: 'No biome',
+    biomeKey: 'none',
     bonuses: [
       'Bow +15%',
       'Dagger +15%',
@@ -112,7 +121,8 @@ export const CRAFTING_CITY_BONUSES = [
   },
   {
     city: "Morgana's Rest",
-    biome: 'No listed biome',
+    biome: 'No biome',
+    biomeKey: 'none',
     bonuses: [
       'Arcane Staff +15%',
       'Cursed Staff +15%',

@@ -228,29 +228,47 @@ function RrrPicker({ onChangeScenario, onClose, onUse, scenario }) {
   );
 }
 
+function parseBonusLabel(bonus) {
+  const match = bonus.match(/^(.*)\s(\+\d+%)$/);
+  if (!match) return { label: bonus, value: '' };
+  return { label: match[1], value: match[2] };
+}
+
 function CraftingBonusModal({ onClose }) {
   return (
-    <div className="rrr-modal-backdrop crafting-bonus-backdrop" role="presentation" onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
-    }}>
-      <article className="rrr-picker-modal crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
-        <header className="rrr-header">
+    <div className="rrr-modal-backdrop crafting-bonus-backdrop" role="presentation">
+      <article className="crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
+        <header className="crafting-bonus-header">
           <div>
             <p className="eyebrow">Crafting planner</p>
             <h1 id="crafting-bonus-title">City Crafting Bonuses</h1>
+            <p>These bonuses are applied when crafting in the listed cities.</p>
           </div>
-          <div className="header-actions">
-            <button className="icon-button danger" type="button" onClick={onClose}>Close</button>
-          </div>
+          <button className="icon-button crafting-bonus-close" type="button" onClick={onClose}>
+            <span aria-hidden="true">x</span>
+            Close
+          </button>
         </header>
-        <div className="crafting-bonus-list">
+        <div className="crafting-bonus-grid">
           {CRAFTING_CITY_BONUSES.map((entry) => (
-            <section className="crafting-bonus-card" key={entry.city}>
-              <h2>{entry.city} - {entry.biome}</h2>
-              <p>{entry.bonuses.join(', ')}</p>
+            <section className={`crafting-bonus-card biome-${entry.biomeKey}`} key={entry.city}>
+              <h2>{entry.city}</h2>
+              <span className="crafting-biome-pill">{entry.biome}</span>
+              <div className="crafting-bonus-chips">
+                {entry.bonuses.map((bonus) => {
+                  const parsedBonus = parseBonusLabel(bonus);
+                  return (
+                    <span className="crafting-bonus-chip" key={bonus}>
+                      <span>{parsedBonus.label}</span>
+                      {parsedBonus.value && <strong>{parsedBonus.value}</strong>}
+                    </span>
+                  );
+                })}
+              </div>
             </section>
           ))}
         </div>
+        <p className="crafting-bonus-note">Bonuses are additive and apply only while crafting in the respective city.</p>
       </article>
     </div>
   );
