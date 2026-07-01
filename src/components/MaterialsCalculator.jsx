@@ -234,7 +234,20 @@ function parseBonusLabel(bonus) {
   return { label: match[1], value: match[2] };
 }
 
+const craftingBonusSections = [
+  {
+    title: 'City Markets',
+    entries: CRAFTING_CITY_BONUSES.filter((entry) => entry.group === 'city'),
+  },
+  {
+    title: 'Outlands Rests',
+    entries: CRAFTING_CITY_BONUSES.filter((entry) => entry.group === 'rest'),
+  },
+];
+
 function CraftingBonusModal({ onClose }) {
+  const totalBonuses = CRAFTING_CITY_BONUSES.reduce((total, entry) => total + entry.bonuses.length, 0);
+
   return (
     <div className="rrr-modal-backdrop crafting-bonus-backdrop" role="presentation">
       <article className="crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
@@ -243,32 +256,45 @@ function CraftingBonusModal({ onClose }) {
             <p className="eyebrow">Crafting planner</p>
             <h1 id="crafting-bonus-title">City Crafting Bonuses</h1>
             <p>These bonuses are applied when crafting in the listed cities.</p>
+            <span>{CRAFTING_CITY_BONUSES.length} markets | {totalBonuses} bonuses</span>
           </div>
           <button className="icon-button crafting-bonus-close" type="button" onClick={onClose}>
             <span aria-hidden="true">x</span>
             Close
           </button>
         </header>
-        <div className="crafting-bonus-grid">
-          {CRAFTING_CITY_BONUSES.map((entry) => (
-            <section className={`crafting-bonus-card biome-${entry.biomeKey}`} key={entry.city}>
-              <h2>{entry.city}</h2>
-              <span className="crafting-biome-pill">{entry.biome}</span>
-              <div className="crafting-bonus-chips">
-                {entry.bonuses.map((bonus) => {
-                  const parsedBonus = parseBonusLabel(bonus);
-                  return (
-                    <span className="crafting-bonus-chip" key={bonus}>
-                      <span>{parsedBonus.label}</span>
-                      {parsedBonus.value && <strong>{parsedBonus.value}</strong>}
-                    </span>
-                  );
-                })}
+        <div className="crafting-bonus-sections">
+          {craftingBonusSections.map((section) => (
+            <section className="crafting-bonus-section" key={section.title}>
+              <h2>{section.title}</h2>
+              <div className="crafting-bonus-table">
+                {section.entries.map((entry) => (
+                  <section className={`crafting-bonus-row biome-${entry.biomeKey}`} key={entry.city}>
+                    <div className="crafting-bonus-location">
+                      <h3>{entry.city}</h3>
+                      <span className="crafting-biome-pill">{entry.biome}</span>
+                    </div>
+                    <div className="crafting-bonus-chips">
+                      {entry.bonuses.map((bonus) => {
+                        const parsedBonus = parseBonusLabel(bonus);
+                        const percentClass = parsedBonus.value === '+10%' ? 'yield' : 'craft';
+                        return (
+                          <span className={`crafting-bonus-chip ${percentClass}`} key={bonus}>
+                            <span>{parsedBonus.label}</span>
+                            {parsedBonus.value && <strong>{parsedBonus.value}</strong>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
               </div>
             </section>
           ))}
         </div>
-        <p className="crafting-bonus-note">Bonuses are additive and apply only while crafting in the respective city.</p>
+        <p className="crafting-bonus-note">
+          <strong>Green</strong> is food or farming output. <strong>Blue</strong> is equipment, cape, bag, potion, or tool crafting.
+        </p>
       </article>
     </div>
   );

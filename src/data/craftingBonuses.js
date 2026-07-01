@@ -3,6 +3,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Fort Sterling',
     biome: 'Mountain',
     biomeKey: 'mountain',
+    group: 'city',
     bonuses: [
       'Raw Chicken +10%',
       'Raw Mutton +10%',
@@ -17,6 +18,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Lymhurst',
     biome: 'Forest',
     biomeKey: 'forest',
+    group: 'city',
     bonuses: [
       'Raw Goose +10%',
       'Sword +15%',
@@ -30,6 +32,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Bridgewatch',
     biome: 'Steppe',
     biomeKey: 'steppe',
+    group: 'city',
     bonuses: [
       'Raw Goat +10%',
       'Crossbow +15%',
@@ -43,6 +46,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Martlock',
     biome: 'Highland',
     biomeKey: 'highland',
+    group: 'city',
     bonuses: [
       'Raw Beef +10%',
       'Axe +15%',
@@ -56,6 +60,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Thetford',
     biome: 'Swamp',
     biomeKey: 'swamp',
+    group: 'city',
     bonuses: [
       'Raw Pork +10%',
       'Mace +15%',
@@ -69,6 +74,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Caerleon',
     biome: 'No biome',
     biomeKey: 'none',
+    group: 'city',
     bonuses: [
       'Gathering Gear +15%',
       'Tool +15%',
@@ -81,6 +87,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: 'Brecilien',
     biome: 'No biome',
     biomeKey: 'none',
+    group: 'city',
     bonuses: [
       'Cape +15%',
       'Bag +15%',
@@ -91,6 +98,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: "Arthur's Rest",
     biome: 'No biome',
     biomeKey: 'none',
+    group: 'rest',
     bonuses: [
       'Axe +15%',
       'Crossbow +15%',
@@ -107,6 +115,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: "Merlyn's Rest",
     biome: 'No biome',
     biomeKey: 'none',
+    group: 'rest',
     bonuses: [
       'Bow +15%',
       'Dagger +15%',
@@ -123,6 +132,7 @@ export const CRAFTING_CITY_BONUSES = [
     city: "Morgana's Rest",
     biome: 'No biome',
     biomeKey: 'none',
+    group: 'rest',
     bonuses: [
       'Arcane Staff +15%',
       'Cursed Staff +15%',
