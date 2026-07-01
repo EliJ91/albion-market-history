@@ -235,20 +235,42 @@ function parseBonusLabel(bonus) {
 }
 
 function getBonusCategory(label) {
-  if (/^Raw /.test(label)) return 'yield';
+  if (/^Raw /.test(label) || label === 'Food') return 'food';
   if (label === 'Potion') return 'potion';
   if (/(Armor|Helmet|Shoes|Gathering Gear)/.test(label)) return 'armor';
   if (/^(Axe|Bow|Crossbow|Dagger|Hammer|Mace|Quarterstaff|Spear|Sword|War Gloves|Arcane Staff|Cursed Staff|Fire Staff|Frost Staff|Holy Staff|Nature Staff|Shapeshifter Staff|Off-Hand)$/.test(label)) return 'weapon';
   return 'other';
 }
 
+const bonusCategoryOrder = {
+  food: 0,
+  potion: 1,
+  weapon: 2,
+  armor: 3,
+  other: 4,
+};
+
+function getSortedBonusItems(bonuses) {
+  return bonuses
+    .map((bonus) => {
+      const parsedBonus = parseBonusLabel(bonus);
+      const category = getBonusCategory(parsedBonus.label);
+      return { ...parsedBonus, bonus, category };
+    })
+    .sort((left, right) => {
+      const categoryDifference = bonusCategoryOrder[left.category] - bonusCategoryOrder[right.category];
+      if (categoryDifference !== 0) return categoryDifference;
+      return left.label.localeCompare(right.label);
+    });
+}
+
 const craftingBonusSections = [
   {
-    title: 'City Markets',
+    title: 'Cities',
     entries: CRAFTING_CITY_BONUSES.filter((entry) => entry.group === 'city'),
   },
   {
-    title: 'Outlands Rests',
+    title: 'Outlands',
     entries: CRAFTING_CITY_BONUSES.filter((entry) => entry.group === 'rest'),
   },
 ];
@@ -259,7 +281,7 @@ function CraftingBonusModal({ onClose }) {
       <article className="crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
         <header className="crafting-bonus-header">
           <div>
-            <h1 id="crafting-bonus-title">City Crafting Bonuses</h1>
+            <h1 id="crafting-bonus-title">Crafting Bonuses</h1>
           </div>
           <button className="icon-button crafting-bonus-close" type="button" onClick={onClose}>
             <span aria-hidden="true">x</span>
@@ -278,13 +300,11 @@ function CraftingBonusModal({ onClose }) {
                       {entry.biomeKey !== 'none' && <span className="crafting-biome-pill">{entry.biome}</span>}
                     </div>
                     <div className="crafting-bonus-chips">
-                      {entry.bonuses.map((bonus) => {
-                        const parsedBonus = parseBonusLabel(bonus);
-                        const bonusCategory = getBonusCategory(parsedBonus.label);
+                      {getSortedBonusItems(entry.bonuses).map((bonus) => {
                         return (
-                          <span className={`crafting-bonus-chip ${bonusCategory}`} key={bonus}>
-                            <span>{parsedBonus.label}</span>
-                            {parsedBonus.value && <strong>{parsedBonus.value}</strong>}
+                          <span className={`crafting-bonus-chip ${bonus.category}`} key={bonus.bonus}>
+                            <span>{bonus.label}</span>
+                            {bonus.value && <strong>{bonus.value}</strong>}
                           </span>
                         );
                       })}
@@ -296,7 +316,7 @@ function CraftingBonusModal({ onClose }) {
           ))}
         </div>
         <p className="crafting-bonus-note">
-          <strong className="legend-yield">Green</strong> marks food or farming output. <strong className="legend-weapon">Red</strong> marks weapon bonuses. <strong className="legend-armor">Blue</strong> marks armor bonuses. <strong className="legend-potion">Yellow</strong> marks potion bonuses. Neutral entries are tools, bags, capes, or other utility crafts.
+          <strong className="legend-food">Green</strong> marks food or farming output. <strong className="legend-potion">Yellow</strong> marks potion bonuses. <strong className="legend-weapon">Red</strong> marks weapon bonuses. <strong className="legend-armor">Blue</strong> marks armor bonuses. Neutral entries are tools, bags, capes, or other utility crafts.
         </p>
       </article>
     </div>
