@@ -235,6 +235,7 @@ function parseBonusLabel(bonus) {
 }
 
 function getBonusCategory(label) {
+  if (/^Raw /.test(label)) return 'yield';
   if (label === 'Potion') return 'potion';
   if (/(Armor|Helmet|Shoes|Gathering Gear)/.test(label)) return 'armor';
   if (/^(Axe|Bow|Crossbow|Dagger|Hammer|Mace|Quarterstaff|Spear|Sword|War Gloves|Arcane Staff|Cursed Staff|Fire Staff|Frost Staff|Holy Staff|Nature Staff|Shapeshifter Staff|Off-Hand)$/.test(label)) return 'weapon';
@@ -258,9 +259,7 @@ function CraftingBonusModal({ onClose }) {
       <article className="crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
         <header className="crafting-bonus-header">
           <div>
-            <p className="eyebrow">Crafting planner</p>
             <h1 id="crafting-bonus-title">City Crafting Bonuses</h1>
-            <p>These bonuses are applied when crafting in the listed cities.</p>
           </div>
           <button className="icon-button crafting-bonus-close" type="button" onClick={onClose}>
             <span aria-hidden="true">x</span>
@@ -297,7 +296,7 @@ function CraftingBonusModal({ onClose }) {
           ))}
         </div>
         <p className="crafting-bonus-note">
-          <strong className="legend-weapon">Red</strong> marks weapon bonuses. <strong className="legend-armor">Blue</strong> marks armor bonuses. <strong className="legend-potion">Yellow</strong> marks potion bonuses. Neutral entries are food, tools, bags, capes, or other utility crafts.
+          <strong className="legend-yield">Green</strong> marks food or farming output. <strong className="legend-weapon">Red</strong> marks weapon bonuses. <strong className="legend-armor">Blue</strong> marks armor bonuses. <strong className="legend-potion">Yellow</strong> marks potion bonuses. Neutral entries are tools, bags, capes, or other utility crafts.
         </p>
       </article>
     </div>

@@ -1438,6 +1438,15 @@ footer {
   font-size: 0.7rem;
 }
 
+.crafting-bonus-chip.yield {
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(20, 83, 45, 0.18);
+}
+
+.crafting-bonus-chip.yield strong {
+  color: #4ade80;
+}
+
 .crafting-bonus-chip.weapon {
   border-color: rgba(248, 113, 113, 0.28);
   background: rgba(127, 29, 29, 0.18);
@@ -1470,6 +1479,10 @@ footer {
   color: #7487aa;
   font-size: 0.76rem;
   text-align: center;
+}
+
+.crafting-bonus-note .legend-yield {
+  color: #4ade80;
 }
 
 .crafting-bonus-note .legend-weapon {

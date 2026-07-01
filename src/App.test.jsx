@@ -98,7 +98,8 @@ describe('App', () => {
     expect(within(dialog).getByRole('button', { name: 'Calculate' })).toHaveClass('materials-calculate-button');
     fireEvent.click(within(dialog).getByRole('button', { name: 'Crafting Bonuses' }));
     const bonusDialog = screen.getByRole('dialog', { name: 'City Crafting Bonuses' });
-    expect(within(bonusDialog).getByText('These bonuses are applied when crafting in the listed cities.')).toBeInTheDocument();
+    expect(within(bonusDialog).queryByText('These bonuses are applied when crafting in the listed cities.')).not.toBeInTheDocument();
+    expect(within(bonusDialog).queryByText('Crafting planner')).not.toBeInTheDocument();
     expect(within(bonusDialog).getByRole('heading', { name: 'Fort Sterling' })).toBeInTheDocument();
     expect(within(bonusDialog).getByText('Mountain')).toBeInTheDocument();
     expect(within(bonusDialog).getAllByText('Hammer').length).toBeGreaterThan(0);
