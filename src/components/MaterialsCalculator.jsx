@@ -234,6 +234,13 @@ function parseBonusLabel(bonus) {
   return { label: match[1], value: match[2] };
 }
 
+function getBonusCategory(label) {
+  if (label === 'Potion') return 'potion';
+  if (/(Armor|Helmet|Shoes|Gathering Gear)/.test(label)) return 'armor';
+  if (/^(Axe|Bow|Crossbow|Dagger|Hammer|Mace|Quarterstaff|Spear|Sword|War Gloves|Arcane Staff|Cursed Staff|Fire Staff|Frost Staff|Holy Staff|Nature Staff|Shapeshifter Staff|Off-Hand)$/.test(label)) return 'weapon';
+  return 'other';
+}
+
 const craftingBonusSections = [
   {
     title: 'City Markets',
@@ -246,8 +253,6 @@ const craftingBonusSections = [
 ];
 
 function CraftingBonusModal({ onClose }) {
-  const totalBonuses = CRAFTING_CITY_BONUSES.reduce((total, entry) => total + entry.bonuses.length, 0);
-
   return (
     <div className="rrr-modal-backdrop crafting-bonus-backdrop" role="presentation">
       <article className="crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
@@ -256,7 +261,6 @@ function CraftingBonusModal({ onClose }) {
             <p className="eyebrow">Crafting planner</p>
             <h1 id="crafting-bonus-title">City Crafting Bonuses</h1>
             <p>These bonuses are applied when crafting in the listed cities.</p>
-            <span>{CRAFTING_CITY_BONUSES.length} markets | {totalBonuses} bonuses</span>
           </div>
           <button className="icon-button crafting-bonus-close" type="button" onClick={onClose}>
             <span aria-hidden="true">x</span>
@@ -277,9 +281,9 @@ function CraftingBonusModal({ onClose }) {
                     <div className="crafting-bonus-chips">
                       {entry.bonuses.map((bonus) => {
                         const parsedBonus = parseBonusLabel(bonus);
-                        const percentClass = parsedBonus.value === '+10%' ? 'yield' : 'craft';
+                        const bonusCategory = getBonusCategory(parsedBonus.label);
                         return (
-                          <span className={`crafting-bonus-chip ${percentClass}`} key={bonus}>
+                          <span className={`crafting-bonus-chip ${bonusCategory}`} key={bonus}>
                             <span>{parsedBonus.label}</span>
                             {parsedBonus.value && <strong>{parsedBonus.value}</strong>}
                           </span>
@@ -293,7 +297,7 @@ function CraftingBonusModal({ onClose }) {
           ))}
         </div>
         <p className="crafting-bonus-note">
-          <strong>Green</strong> is food or farming output. <strong>Blue</strong> is equipment, cape, bag, potion, or tool crafting.
+          <strong className="legend-weapon">Red</strong> marks weapon bonuses. <strong className="legend-armor">Blue</strong> marks armor bonuses. <strong className="legend-potion">Yellow</strong> marks potion bonuses. Neutral entries are food, tools, bags, capes, or other utility crafts.
         </p>
       </article>
     </div>

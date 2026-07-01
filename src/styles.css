@@ -1238,6 +1238,8 @@ footer {
   max-height: calc(100vh - 36px);
   margin: auto;
   overflow: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   padding: clamp(18px, 3vw, 28px);
   border: 1px solid rgba(96, 165, 250, 0.42);
   border-radius: 18px;
@@ -1248,6 +1250,10 @@ footer {
   box-shadow:
     0 34px 110px rgba(0, 0, 0, 0.72),
     inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.crafting-bonus-modal::-webkit-scrollbar {
+  display: none;
 }
 
 .crafting-bonus-header {
@@ -1270,18 +1276,6 @@ footer {
   margin: 0;
   color: #a7b8d8;
   font-size: 0.9rem;
-}
-
-.crafting-bonus-header div > span {
-  display: inline-flex;
-  margin-top: 8px;
-  padding: 4px 9px;
-  border: 1px solid rgba(96, 165, 250, 0.2);
-  border-radius: 999px;
-  background: rgba(15, 32, 58, 0.6);
-  color: #93c5fd;
-  font-size: 0.72rem;
-  font-weight: 800;
 }
 
 .crafting-bonus-close {
@@ -1440,12 +1434,35 @@ footer {
 }
 
 .crafting-bonus-chip strong {
-  color: #60a5fa;
+  color: #cbd5e1;
   font-size: 0.7rem;
 }
 
-.crafting-bonus-chip.yield strong {
-  color: #4ade80;
+.crafting-bonus-chip.weapon {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(127, 29, 29, 0.18);
+}
+
+.crafting-bonus-chip.weapon strong {
+  color: #f87171;
+}
+
+.crafting-bonus-chip.armor {
+  border-color: rgba(96, 165, 250, 0.3);
+  background: rgba(30, 64, 175, 0.17);
+}
+
+.crafting-bonus-chip.armor strong {
+  color: #60a5fa;
+}
+
+.crafting-bonus-chip.potion {
+  border-color: rgba(250, 204, 21, 0.32);
+  background: rgba(113, 63, 18, 0.18);
+}
+
+.crafting-bonus-chip.potion strong {
+  color: #facc15;
 }
 
 .crafting-bonus-note {
@@ -1455,12 +1472,16 @@ footer {
   text-align: center;
 }
 
-.crafting-bonus-note strong:first-child {
-  color: #4ade80;
+.crafting-bonus-note .legend-weapon {
+  color: #f87171;
 }
 
-.crafting-bonus-note strong:last-child {
+.crafting-bonus-note .legend-armor {
   color: #60a5fa;
+}
+
+.crafting-bonus-note .legend-potion {
+  color: #facc15;
 }
 
 .melding-controls {
