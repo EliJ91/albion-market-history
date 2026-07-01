@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CRAFTING_PLANNER_STORAGE_KEY } from '../config';
+import { CRAFTING_CITY_BONUSES } from '../data/craftingBonuses';
 import {
   buildItemId,
   canChangeTier,
@@ -227,9 +228,38 @@ function RrrPicker({ onChangeScenario, onClose, onUse, scenario }) {
   );
 }
 
+function CraftingBonusModal({ onClose }) {
+  return (
+    <div className="rrr-modal-backdrop crafting-bonus-backdrop" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose();
+    }}>
+      <article className="rrr-picker-modal crafting-bonus-modal" role="dialog" aria-modal="true" aria-labelledby="crafting-bonus-title">
+        <header className="rrr-header">
+          <div>
+            <p className="eyebrow">Crafting planner</p>
+            <h1 id="crafting-bonus-title">City Crafting Bonuses</h1>
+          </div>
+          <div className="header-actions">
+            <button className="icon-button danger" type="button" onClick={onClose}>Close</button>
+          </div>
+        </header>
+        <div className="crafting-bonus-list">
+          {CRAFTING_CITY_BONUSES.map((entry) => (
+            <section className="crafting-bonus-card" key={entry.city}>
+              <h2>{entry.city} - {entry.biome}</h2>
+              <p>{entry.bonuses.join(', ')}</p>
+            </section>
+          ))}
+        </div>
+      </article>
+    </div>
+  );
+}
+
 export default function MaterialsCalculator({ onClose, onOpenRrr, standalone = false }) {
   const [entries, setEntries] = useState(loadPlannerEntries);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [bonusOpen, setBonusOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [amount, setAmount] = useState(1);
   const [rrr, setRrr] = useState(0);
@@ -282,7 +312,10 @@ export default function MaterialsCalculator({ onClose, onOpenRrr, standalone = f
           </div>
         </header>
 
-        <p className="rrr-intro">Build a craft list, set each item's RRR, and see the total materials you need to bring after expected returns.</p>
+        <div className="materials-intro-row">
+          <p className="rrr-intro">Build a craft list, set each item's RRR, and see the total materials you need to bring after expected returns.</p>
+          <button className="icon-button navigation-button materials-bonus-button" type="button" onClick={() => setBonusOpen(true)}>Crafting Bonuses</button>
+        </div>
 
         <section className="materials-controls">
           <MaterialItemPicker key={pickerKey} selectedItem={selectedItem} onSelect={setSelectedItem} />
@@ -295,7 +328,7 @@ export default function MaterialsCalculator({ onClose, onOpenRrr, standalone = f
               RRR %
               <input min="0" max="100" step="0.1" type="number" value={rrr} onChange={(event) => setRrr(event.target.value)} />
             </label>
-            <button className="icon-button navigation-button" type="button" onClick={() => setPickerOpen(true)}>Calculate</button>
+            <button className="icon-button navigation-button materials-calculate-button" type="button" onClick={() => setPickerOpen(true)}>Calculate</button>
           </div>
         </section>
 
@@ -354,6 +387,7 @@ export default function MaterialsCalculator({ onClose, onOpenRrr, standalone = f
           }}
         />
       )}
+      {bonusOpen && <CraftingBonusModal onClose={() => setBonusOpen(false)} />}
     </div>
   );
 }

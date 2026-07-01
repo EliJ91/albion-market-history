@@ -995,6 +995,24 @@ footer {
   margin-bottom: 14px;
 }
 
+.materials-intro-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 14px 0;
+}
+
+.materials-intro-row .rrr-intro {
+  margin: 0;
+}
+
+.materials-bonus-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding-inline: 14px;
+}
+
 .materials-controls > label {
   display: grid;
   gap: 6px;
@@ -1016,6 +1034,11 @@ footer {
   color: #94a3b8;
   font-size: 0.7rem;
   font-weight: 700;
+}
+
+.materials-calculate-button {
+  height: 40px;
+  min-height: 40px;
 }
 
 .materials-add-button {
@@ -1200,6 +1223,42 @@ footer {
 
 .rrr-picker-modal .rrr-scenario {
   margin-top: 16px;
+}
+
+.crafting-bonus-backdrop {
+  z-index: 130;
+}
+
+.crafting-bonus-modal {
+  width: min(760px, 100%);
+}
+
+.crafting-bonus-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.crafting-bonus-card {
+  display: grid;
+  gap: 5px;
+  padding: 11px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 9px;
+  background: rgba(8, 13, 28, 0.52);
+}
+
+.crafting-bonus-card h2 {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.crafting-bonus-card p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.76rem;
+  line-height: 1.5;
 }
 
 .melding-controls {
@@ -1598,6 +1657,10 @@ footer {
   }
 
   .salvage-heading {
+    display: grid;
+  }
+
+  .materials-intro-row {
     display: grid;
   }
 

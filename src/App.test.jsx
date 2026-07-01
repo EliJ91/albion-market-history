@@ -95,6 +95,14 @@ describe('App', () => {
     expect(within(dialog).getByRole('button', { name: 'Market History' })).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Artifact Melding' })).toBeInTheDocument();
     expect(within(dialog).getByRole('button', { name: 'Compare RRR' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Calculate' })).toHaveClass('materials-calculate-button');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Crafting Bonuses' }));
+    const bonusDialog = screen.getByRole('dialog', { name: 'City Crafting Bonuses' });
+    expect(within(bonusDialog).getByRole('heading', { name: 'Fort Sterling - Mountain' })).toBeInTheDocument();
+    expect(within(bonusDialog).getAllByText(/Hammer \+15%/).length).toBeGreaterThan(0);
+    expect(within(bonusDialog).getByRole('heading', { name: "Arthur's Rest - No listed biome" })).toBeInTheDocument();
+    expect(within(bonusDialog).getAllByText(/War Gloves \+15%/).length).toBeGreaterThan(0);
+    fireEvent.click(within(bonusDialog).getByRole('button', { name: 'Close' }));
     fireEvent.click(within(dialog).getByRole('button', { name: 'Calculate' }));
     const picker = screen.getByRole('dialog', { name: 'Choose RRR' });
     expect(within(picker).getByRole('heading', { name: 'Scenario A' })).toBeInTheDocument();
