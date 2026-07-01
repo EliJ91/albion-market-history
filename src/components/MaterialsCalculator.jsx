@@ -276,7 +276,7 @@ function CraftingBonusModal({ onClose }) {
                   <section className={`crafting-bonus-row biome-${entry.biomeKey}`} key={entry.city}>
                     <div className="crafting-bonus-location">
                       <h3>{entry.city}</h3>
-                      <span className="crafting-biome-pill">{entry.biome}</span>
+                      {entry.biomeKey !== 'none' && <span className="crafting-biome-pill">{entry.biome}</span>}
                     </div>
                     <div className="crafting-bonus-chips">
                       {entry.bonuses.map((bonus) => {

@@ -103,7 +103,7 @@ describe('App', () => {
     expect(within(bonusDialog).getByText('Mountain')).toBeInTheDocument();
     expect(within(bonusDialog).getAllByText('Hammer').length).toBeGreaterThan(0);
     expect(within(bonusDialog).getByRole('heading', { name: "Arthur's Rest" })).toBeInTheDocument();
-    expect(within(bonusDialog).getAllByText('No biome').length).toBeGreaterThan(0);
+    expect(within(bonusDialog).queryByText('No biome')).not.toBeInTheDocument();
     expect(within(bonusDialog).getAllByText('War Gloves').length).toBeGreaterThan(0);
     fireEvent.mouseDown(bonusDialog.parentElement);
     expect(screen.getByRole('dialog', { name: 'City Crafting Bonuses' })).toBeInTheDocument();
