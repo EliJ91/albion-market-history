@@ -1223,6 +1223,108 @@ footer {
   padding-top: 4px;
 }
 
+.shopping-list-page {
+  width: min(1240px, 100%);
+}
+
+.shopping-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 160px)) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 14px 0;
+}
+
+.shopping-controls label,
+.shopping-log-panel {
+  display: grid;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.shopping-rrr-button {
+  height: 40px;
+  min-height: 40px;
+}
+
+.shopping-log-panel {
+  margin-bottom: 14px;
+}
+
+.shopping-log-panel textarea {
+  min-height: 180px;
+  resize: vertical;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 10px;
+  background: #0f172a;
+  color: #dbeafe;
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  padding: 12px;
+  outline: none;
+}
+
+.shopping-log-panel textarea:focus {
+  border-color: rgba(96, 165, 250, 0.72);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+}
+
+.shopping-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.shopping-warning {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid rgba(250, 204, 21, 0.28);
+  border-radius: 10px;
+  background: rgba(250, 204, 21, 0.08);
+}
+
+.shopping-warning h2 {
+  margin: 0;
+  color: #fde68a;
+  font-size: 0.95rem;
+}
+
+.shopping-warning p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.78rem;
+}
+
+.shopping-warning div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.shopping-warning code {
+  border: 1px solid rgba(250, 204, 21, 0.22);
+  border-radius: 999px;
+  background: rgba(8, 13, 28, 0.52);
+  color: #fde68a;
+  padding: 4px 7px;
+}
+
+.shopping-missing-recipe {
+  border-color: rgba(248, 113, 113, 0.36);
+}
+
+.shopping-buy-list {
+  margin-top: 16px;
+}
+
+.shopping-table-header,
+.shopping-table-row {
+  grid-template-columns: minmax(220px, 1.8fr) repeat(3, minmax(90px, 0.6fr));
+}
+
 .rrr-picker-backdrop {
   z-index: 120;
 }
@@ -1909,11 +2011,13 @@ footer {
 
   .melding-controls,
   .materials-controls,
+  .shopping-controls,
   .materials-rrr-control,
   .melding-source-summary,
   .melding-strategies,
   .melding-metrics,
   .materials-summary,
+  .shopping-summary,
   .salvage-summary {
     grid-template-columns: 1fr;
   }
@@ -1945,7 +2049,9 @@ footer {
   }
 
   .materials-table-header,
-  .materials-table-row {
+  .materials-table-row,
+  .shopping-table-header,
+  .shopping-table-row {
     min-width: 620px;
   }
 

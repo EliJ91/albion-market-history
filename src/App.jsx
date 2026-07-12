@@ -4,6 +4,7 @@ import MarketCard from './components/MarketCard';
 import RrrCalculator from './components/RrrCalculator';
 import MeldingCalculator from './components/MeldingCalculator';
 import MaterialsCalculator from './components/MaterialsCalculator';
+import ShoppingList from './components/ShoppingList';
 import { STORAGE_KEY } from './config';
 import { buildItemId, getItemName } from './utils/itemCatalog';
 import { APP_VERSION } from './version';
@@ -11,6 +12,7 @@ import { APP_VERSION } from './version';
 function getRoute() {
   if (window.location.hash === '#market') return 'market';
   if (window.location.hash === '#crafting-planner' || window.location.hash === '#materials-calculator') return 'crafting';
+  if (window.location.hash === '#shopping-list') return 'shopping';
   if (window.location.hash === '#artifact-melding' || window.location.hash === '#melding-calculator') return 'melding';
   if (window.location.hash === '#rrr-calculator') return 'rrr';
   return 'landing';
@@ -128,6 +130,8 @@ export default function App() {
     content = <MeldingCalculator standalone onOpenRrr={() => setCalculatorOpen(true)} />;
   } else if (route === 'crafting') {
     content = <MaterialsCalculator standalone onOpenRrr={() => setCalculatorOpen(true)} />;
+  } else if (route === 'shopping') {
+    content = <ShoppingList standalone onOpenRrr={() => setCalculatorOpen(true)} />;
   } else {
     content = (
       <>
@@ -138,6 +142,7 @@ export default function App() {
           </div>
           <div className="topbar-actions">
             <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#crafting-planner')}>Crafting Planner</button>
+            <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#shopping-list')}>Shopping List</button>
             <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#artifact-melding')}>Artifact Melding</button>
             <button className="icon-button navigation-button" type="button" onClick={() => setCalculatorOpen(true)}>Compare RRR</button>
           </div>

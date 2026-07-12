@@ -205,6 +205,7 @@ export default function MeldingCalculator({ onClose, onOpenRrr, standalone = fal
             <button className="icon-button" type="button" onClick={() => setRefreshKey((value) => value + 1)}>Refresh</button>
             {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#market')}>Market History</button>}
             {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#crafting-planner')}>Crafting Planner</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#shopping-list')}>Shopping List</button>}
             {standalone && <button className="icon-button navigation-button" type="button" onClick={onOpenRrr}>Compare RRR</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
           </div>

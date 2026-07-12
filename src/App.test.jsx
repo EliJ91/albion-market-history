@@ -16,7 +16,7 @@ describe('App', () => {
   it('renders a landing page and enters the market through Log In', () => {
     render(<App />);
 
-    expect(screen.getByLabelText('Application version 1.15.0')).toHaveTextContent('v1.15.0');
+    expect(screen.getByLabelText('Application version 1.16.0')).toHaveTextContent('v1.16.0');
     expect(screen.getByText('Powered by Albion Data Project')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Albion Profit Tools' })).toBeInTheDocument();
     expect(screen.getByText('Knowledge is power. Data is profit.')).toBeInTheDocument();
@@ -29,6 +29,36 @@ describe('App', () => {
     expect(screen.getByRole('button', { name: 'Compare RRR' })).toHaveClass('navigation-button');
     expect(screen.getByRole('button', { name: 'Artifact Melding' })).toHaveClass('navigation-button');
     expect(screen.getByRole('button', { name: 'Crafting Planner' })).toHaveClass('navigation-button');
+    expect(screen.getByRole('button', { name: 'Shopping List' })).toHaveClass('navigation-button');
+  });
+
+  it('opens the shopping list and calculates materials to buy from a chest log', () => {
+    window.history.pushState(null, '', '/#shopping-list');
+    render(<App />);
+
+    const page = screen.getByRole('main', { name: 'Shopping List' });
+    expect(screen.getByRole('heading', { name: 'Shopping List' })).toBeInTheDocument();
+    expect(within(page).getByRole('button', { name: 'Market History' })).toBeInTheDocument();
+    expect(within(page).getByRole('button', { name: 'Crafting Planner' })).toBeInTheDocument();
+    expect(within(page).getByRole('button', { name: 'Artifact Melding' })).toBeInTheDocument();
+
+    fireEvent.change(within(page).getByLabelText('Craft tier'), { target: { value: '6' } });
+    fireEvent.change(within(page).getByLabelText('Enchantment'), { target: { value: '3' } });
+    fireEvent.change(within(page).getByLabelText('RRR %'), { target: { value: '25' } });
+    fireEvent.change(within(page).getByLabelText('Chest log'), {
+      target: {
+        value: "8 Master's Burning Orb\n10 Exceptional Bloodoak Planks\n5 Exceptional Runite Steel Bar",
+      },
+    });
+
+    expect(within(page).getByRole('heading', { name: 'Craftable Items' })).toBeInTheDocument();
+    expect(within(page).getByText("Master's Brimstone Staff")).toBeInTheDocument();
+    expect(within(page).getByRole('heading', { name: 'Materials To Buy' })).toBeInTheDocument();
+    expect(within(page).getByText('Exceptional Bloodoak Planks')).toBeInTheDocument();
+    expect(within(page).getByText('Exceptional Runite Steel Bar')).toBeInTheDocument();
+    expect(within(page).getByText('115')).toBeInTheDocument();
+    expect(within(page).getByText('70')).toBeInTheDocument();
+    expect(localStorage.getItem('albion-market-history:shopping-list:v1')).toContain("Master's Burning Orb");
   });
 
   it('opens the artifact melding and salvage profitability calculator with city filtering', async () => {

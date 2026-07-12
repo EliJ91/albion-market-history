@@ -373,6 +373,7 @@ export default function MaterialsCalculator({ onClose, onOpenRrr, standalone = f
           </div>
           <div className="header-actions">
             {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#market')}>Market History</button>}
+            {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#shopping-list')}>Shopping List</button>}
             {standalone && <button className="icon-button navigation-button" type="button" onClick={() => navigateTo('#artifact-melding')}>Artifact Melding</button>}
             {standalone && <button className="icon-button navigation-button" type="button" onClick={onOpenRrr}>Compare RRR</button>}
             {!standalone && <button className="icon-button danger" type="button" onClick={onClose}>Close</button>}
