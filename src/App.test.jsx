@@ -16,6 +16,7 @@ describe('App', () => {
   it('renders a landing page and enters the market through Log In', () => {
     render(<App />);
 
+    expect(screen.getByLabelText('Application version 1.15.0')).toHaveTextContent('v1.15.0');
     expect(screen.getByText('Powered by Albion Data Project')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Albion Profit Tools' })).toBeInTheDocument();
     expect(screen.getByText('Knowledge is power. Data is profit.')).toBeInTheDocument();

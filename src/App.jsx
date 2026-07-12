@@ -6,6 +6,7 @@ import MeldingCalculator from './components/MeldingCalculator';
 import MaterialsCalculator from './components/MaterialsCalculator';
 import { STORAGE_KEY } from './config';
 import { buildItemId, getItemName } from './utils/itemCatalog';
+import { APP_VERSION } from './version';
 
 function getRoute() {
   if (window.location.hash === '#market') return 'market';
@@ -179,6 +180,7 @@ export default function App() {
     <>
       {content}
       {calculatorOpen && <RrrCalculator onClose={() => setCalculatorOpen(false)} />}
+      <div className="app-version" aria-label={`Application version ${APP_VERSION}`}>v{APP_VERSION}</div>
     </>
   );
 }
